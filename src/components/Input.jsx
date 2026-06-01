@@ -5,7 +5,7 @@ export default function Input({ title, placeholder, onClick }) {
         <div className="relative">
             <input
             type="text"
-            className="w-full bg-[#f6f6f6] h-15 rounded-lg px-4 hover:border border-blue-500 placeholder:text-[#A2A2A2]"
+            className="w-full bg-[#f6f6f6] h-15 rounded-lg px-4 hover:border border-blue-400 placeholder:text-[#A2A2A2]"
             placeholder={placeholder}/>
             {onClick && (
                 <button onClick={onClick} className="absolute right-3 top-1/2 -translate-y-1/2 w-17.75 h-8.75 bg-black rounded-lg">
