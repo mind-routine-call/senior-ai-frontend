@@ -7,8 +7,11 @@ const Index = () => {
   const handleLoginClick = () => {
     navigate('/login')
   }
-  const handleAccountClick = () => {
+  const handleGuardianSignupClick = () => {
     navigate('/account')
+  }
+  const handleElderSignupClick = () => {
+    navigate('/account/elder')
   }
 
   return (
@@ -17,8 +20,9 @@ const Index = () => {
         <img src={logo} alt="" className='w-45 h-24' />
       </div>
       <div className='mt-79.25 flex flex-col gap-4'>
-        <Button title={"로그인"} main onClick={handleLoginClick}/>
-        <Button title={"회원가입"} onClick={handleAccountClick} />
+        <Button title={"보호자로 회원가입하기"} main onClick={handleGuardianSignupClick} />
+        <Button title={"어르신으로 회원가입하기"} main onClick={handleElderSignupClick} />
+        <Button title={"로그인"} onClick={handleLoginClick}/>
       </div>
     </div>
   )
