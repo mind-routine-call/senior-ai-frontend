@@ -1,6 +1,8 @@
+import { useNavigate } from "react-router-dom"
 import Button from "../../components/Button"
 import Input from "../../components/Input"
 import GenderToggle from "./components/GenderToggle"
+import back from '../../assets/img/back.svg'
 
 const GUARDIAN_GROUP = {
     gender: { title: "보호자" },
@@ -26,11 +28,18 @@ const ELDER_GROUP = {
 }
 
 export default function Account({ type = "guardian" }) {
-    const group = type === "guardian" ? GUARDIAN_GROUP : ELDER_GROUP
+const group = type === "guardian" ? GUARDIAN_GROUP : ELDER_GROUP
+const navigate = useNavigate()
+const goBack = () => {
+    navigate(-1)
+}
 
   return (
     <div>
         <div className="mt-11.5">
+            <button onClick={goBack}>
+                <img src={back} alt="" className="mb-4" />
+            </button>
             <h1 className="font-semibold text-[22px]">안녕하세요 {group.gender.title}님
                 <br />회원가입을 위한 정보를 입력해주세요!
             </h1>
