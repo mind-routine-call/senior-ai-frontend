@@ -1,8 +1,16 @@
 // src/pages/Schedule/ScheduleManager.jsx
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
+import Button from "../../components/Button";
+import Input from "../../components/Input";
+import backIcon from "../../assets/img/back.svg";
+import mind_routine from "../../assets/img/mind_routine.svg";
+
 export default function ScheduleManager() {
+  const navigate = useNavigate();
+
   // 1. 입력 폼 상태 관리 (State)
   const [selectedDate, setSelectedDate] = useState("2026-06-01");
   const [ampm, setAmpm] = useState("오전");
@@ -10,11 +18,11 @@ export default function ScheduleManager() {
   const [minute, setMinute] = useState("00");
   const [repeatType, setRepeatType] = useState("매일");
 
-  // 2. 🎉 예약 완료 팝업창(모달) 제어용 상태 추가
+  // 예약 완료 팝업
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
 
-  // 가상의 기본 데이터 (어르신 및 시나리오 연동용)
+  // 가상의 기본 데이터 (연결하면서 수정하기!!!)
   const DEFAULT_ELDER_ID = 1;
   const DEFAULT_SCENARIO_ID = 2;
 
@@ -85,7 +93,7 @@ export default function ScheduleManager() {
   const handleReservation = async () => {
     try {
       // 오전/오후 단어를 백엔드가 좋아하는 24시간계 텍스트(HH)로 보정 연산
-      let convertedHour = parseInt(hour, 10);
+      let convertedHour = parseInt(hour, 10) || 12;
       if (ampm === "오후" && convertedHour !== 12) {
         convertedHour += 12;
       } else if (ampm === "오전" && convertedHour === 12) {
@@ -119,45 +127,65 @@ export default function ScheduleManager() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-start p-4 font-sans relative">
-      
-      {/* 스마트폰 내부 뷰 프레임 */}
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-lg p-6 flex flex-col min-h-[720px]">
+    
+      <div className="w-full h-full py-6 flex flex-col font-sans relative">
         
         {/* 헤더 타이틀 바 */}
         <div className="flex items-center justify-start mb-6">
-          <button className="text-xl font-bold text-gray-700 hover:text-black">←</button>
-          <h1 className="text-xl font-black text-gray-900 ml-4">채팅 일정 예약하기</h1>
+          <button 
+            onClick={() => navigate('/mypage')} 
+            className="hover:opacity-70 transition-opacity p-1"
+          >
+          <img src={backIcon} alt="뒤로가기" className="w-6 h-6" />
+          </button>
+          <h1 className="text-[20px] font-black text-gray-900 ml-3">채팅 일정 예약하기</h1>
         </div>
 
         {/* [날짜] 달력 컴포넌트 구역 */}
-        <div className="bg-gray-100 rounded-2xl p-4 mb-5 flex flex-col items-center">
-          <label className="text-xs font-semibold text-gray-500 mb-2 self-start">날짜 설정</label>
+        <div className="mb-6 flex flex-col gap-2">
+          <p className="text-[18px]">날짜 설정</p>
           <input 
             type="date" 
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-xl p-3 font-bold text-center text-gray-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-400"
+            className="w-full bg-[#f6f6f6] h-15 rounded-lg px-4 font-bold text-center text-gray-800 focus:outline-none focus:border border-blue-400"
           />
         </div>
 
         {/* 🛠️ [시간] 삼각형 클릭 + 키보드 직접 입력 하이브리드 구역 */}
-        <div className="bg-gray-100 rounded-2xl p-6 mb-5 flex justify-around items-center select-none">
+        <div className="mb-6">
+        <p className="text-[18px] mb-2 font-bold text-gray-800">시간 설정</p>
+        
+        {/* 두 번째 사진처럼 회색 박스 안에 모든 요소를 가로(row)로 나란히 가둡니다 */}
+        <div 
+          style={{ 
+            display: "flex", 
+            flexDirection: "row", 
+            alignItems: "center", 
+            justifyContent: "space-between",
+            backgroundColor: "#f6f6f6",
+            borderRadius: "12px",
+            padding: "16px",
+            height: "120px",
+            userSelect: "none"
+          }}
+        >
           
-          {/* 오전/오후 조작단 */}
-          <div className="flex flex-col items-center w-16">
-            <button onClick={toggleAmpm} className="text-gray-400 hover:text-purple-600 font-bold p-1 text-sm">▲</button>
-            <span className="text-xl font-black text-gray-800 my-2 cursor-pointer" onClick={toggleAmpm}>
+          {/* [오전/오후 조작단] 내부 요소를 세로(column)로 정렬 */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+            <button onClick={toggleAmpm} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▲</button>
+            <span className="text-[20px] font-black text-gray-800 my-1 cursor-pointer" onClick={toggleAmpm}>
               {ampm}
             </span>
-            <button onClick={toggleAmpm} className="text-gray-400 hover:text-purple-600 font-bold p-1 text-sm">▼</button>
+            <button onClick={toggleAmpm} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▼</button>
           </div>
 
-          <span className="text-2xl font-black text-gray-300">:</span>
+          {/* 콜론 기호는 중앙 세로 정렬 */}
+          <span className="text-2xl font-black text-gray-400" style={{ alignSelf: "center", paddingBottom: "4px" }}>:</span>
 
-          {/* 시(Hour) 하이브리드 입력단 */}
-          <div className="flex flex-col items-center w-16">
-            <button onClick={increaseHour} className="text-gray-400 hover:text-purple-600 font-bold p-1 text-sm">▲</button>
+          {/* [시(Hour)] 내부 요소를 세로(column)로 정렬 */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+            <button onClick={increaseHour} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▲</button>
             <input 
               type="text"
               inputMode="numeric"
@@ -165,16 +193,18 @@ export default function ScheduleManager() {
               value={hour}
               onChange={(e) => handleHourChange(e.target.value)}
               onBlur={handleBlur}
-              className="w-full bg-transparent text-2xl font-black text-gray-800 text-center my-1 focus:outline-none focus:text-purple-600 tracking-wide"
+              className="w-full bg-transparent text-[22px] font-black text-gray-800 text-center my-0.5 focus:outline-none tracking-wide"
+              style={{ border: "none", outline: "none", textAlign: "center" }}
             />
-            <button onClick={decreaseHour} className="text-gray-400 hover:text-purple-600 font-bold p-1 text-sm">▼</button>
+            <button onClick={decreaseHour} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▼</button>
           </div>
 
-          <span className="text-2xl font-black text-gray-300">:</span>
+          {/* 콜론 기호 */}
+          <span className="text-2xl font-black text-gray-400" style={{ alignSelf: "center", paddingBottom: "4px" }}>:</span>
 
-          {/* 분(Minute) 하이브리드 입력단 */}
-          <div className="flex flex-col items-center w-16">
-            <button onClick={increaseMinute} className="text-gray-400 hover:text-purple-600 font-bold p-1 text-sm">▲</button>
+          {/* [분(Minute)] 내부 요소를 세로(column)로 정렬 */}
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
+            <button onClick={increaseMinute} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▲</button>
             <input 
               type="text"
               inputMode="numeric"
@@ -182,67 +212,51 @@ export default function ScheduleManager() {
               value={minute}
               onChange={(e) => handleMinuteChange(e.target.value)}
               onBlur={handleBlur}
-              className="w-full bg-transparent text-2xl font-black text-gray-800 text-center my-1 focus:outline-none focus:text-purple-600 tracking-wide"
+              className="w-full bg-transparent text-[22px] font-black text-gray-800 text-center my-0.5 focus:outline-none tracking-wide"
+              style={{ border: "none", outline: "none", textAlign: "center" }}
             />
-            <button onClick={decreaseMinute} className="text-gray-400 hover:text-purple-600 font-bold p-1 text-sm">▼</button>
+            <button onClick={decreaseMinute} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▼</button>
           </div>
-
         </div>
+        
 
         {/* [반복] 라디오 버튼 토글 구역 */}
-        <div className="bg-teal-50 border border-teal-100 rounded-xl p-4 flex items-center justify-between mb-8">
-          <span className="font-bold text-gray-800 text-sm">반복 설정하기</span>
-          <div className="flex gap-4">
-            {["매일", "매주", "없음"].map((type) => (
-              <label key={type} className="flex items-center gap-1 cursor-pointer text-sm font-medium text-gray-700">
-                <input 
-                  type="radio" 
-                  name="repeat" 
-                  checked={repeatType === type} 
-                  onChange={() => setRepeatType(type)}
-                  className="accent-purple-500"
-                /> {type === "없음" ? "안함" : type}
-              </label>
-            ))}
-          </div>
+        <div className="mb-8">
+        <p className="text-[18px] mb-2">반복 설정하기</p>
+        <div className="bg-[#f6f6f6] rounded-xl p-4 flex justify-around items-center">
+          {["매일", "매주", "없음"].map((type) => (
+            <label key={type} className="flex items-center gap-2 cursor-pointer text-md font-medium text-gray-700">
+              <input 
+                type="radio" 
+                name="repeat" 
+                checked={repeatType === type} 
+                onChange={() => setRepeatType(type)}
+                className="w-4 h-4 accent-black"
+              /> {type === "없음" ? "안함" : type}
+            </label>
+          ))}
         </div>
+      </div>
 
         {/* 최종 제출 버튼 */}
-        <button 
-          onClick={handleReservation}
-          className="w-full bg-purple-100 text-purple-700 hover:bg-purple-200 transition-colors py-4 rounded-2xl font-black text-lg shadow-sm"
-        >
-          예약하기
-        </button>
+        <div className="mt-auto">
+        <Button title="예약하기" main={true} onClick={handleReservation} />
       </div>
+    </div>
 
       {/* ────────────────────────────────────────────────────────── */}
       {/* ✨ [모달 팝업] 조건부 렌더링 영역 (isModalOpen이 true일 때만 레이어로 나타남) */}
       {isModalOpen && (
-        <div className="absolute inset-0 bg-black/40 rounded-3xl flex items-center justify-center p-6 z-50 animate-fade-in">
-          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl flex flex-col items-center">
-            
-            {/* 알림 제목 */}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-[9999]">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-sm shadow-2xl flex flex-col items-center border border-gray-100 animate-fade-in">
             <h3 className="text-lg font-black text-gray-900 mb-4">🔔 예약 완료</h3>
-            
-            {/* 와이어프레임 본문 영역 디자인 싱크로 */}
             <div className="bg-gray-100 rounded-xl p-5 w-full text-center text-sm font-bold text-gray-700 border border-gray-200 leading-relaxed mb-6">
               {modalMessage}
             </div>
-            
-            {/* 팝업 닫기 버튼 */}
-            <button 
-              onClick={() => setIsModalOpen(false)}
-              className="w-full bg-gray-900 text-white font-bold py-3 rounded-xl hover:bg-black transition-colors"
-            >
-              확인
-            </button>
-            
+            <Button title="확인" main={true} onClick={() => setIsModalOpen(false)} />
           </div>
         </div>
       )}
-      {/* ────────────────────────────────────────────────────────── */}
-
     </div>
   );
 }
