@@ -9,7 +9,7 @@ const GUARDIAN_GROUP = {
     fields: [
         { id: 1, title: "보호자 이름", placeholder: "보호자 이름을 입력해주세요" },
         { id: 2, title: "보호자 전화번호", placeholder: "보호자 전화번호를 입력해주세요" },
-        { id: 3, title: "보호자 전화번호 인증", placeholder: "문자 인증번호를 입력해주세요" },
+        { id: 3, title: "보호자 전화번호 인증", placeholder: "문자 인증번호를 입력해주세요", hasButton: true  },
         { id: 4, title: "보호자 비밀번호", placeholder: "보호자 비밀번호를 입력해주세요" },
         { id: 5, title: "보호자 비밀번호 확인", placeholder: "보호자 비밀번호를 다시 입력해주세요" },
     ],
@@ -20,7 +20,7 @@ const ELDER_GROUP = {
     fields: [
         { id: 1, title: "어르신 이름", placeholder: "어르신 이름을 입력해주세요" },
         { id: 2, title: "어르신 전화번호", placeholder: "어르신 전화번호를 입력해주세요" },
-        { id: 3, title: "어르신 전화번호 인증", placeholder: "문자 인증번호를 입력해주세요" },
+        { id: 3, title: "어르신 전화번호 인증", placeholder: "문자 인증번호를 입력해주세요", hasButton: true  },
         { id: 4, title: "어르신 비밀번호", placeholder: "어르신 비밀번호를 입력해주세요" },
         { id: 5, title: "어르신 비밀번호 확인", placeholder: "어르신 비밀번호를 다시 입력해주세요" },
         { id: 6, title: "초대코드 인증", placeholder: "초대 코드를 인증해주세요", hasButton: true },
@@ -28,7 +28,7 @@ const ELDER_GROUP = {
 }
 
 export default function Account({ type = "guardian" }) {
-const group = type === "guardian" ? GUARDIAN_GROUP : ELDER_GROUP
+const group = type === "guardian" ?   ELDER_GROUP:GUARDIAN_GROUP
 const navigate = useNavigate()
 const goBack = () => {
     navigate(-1)
