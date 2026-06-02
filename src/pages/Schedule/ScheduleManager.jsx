@@ -99,10 +99,10 @@ export default function ScheduleManager() {
       } else if (ampm === "오전" && convertedHour === 12) {
         convertedHour = 0;
       }
-      
+
       const formattedHour = String(convertedHour).padStart(2, "0");
       const formattedMinute = String(minute).padStart(2, "0");
-      
+
       // 백엔드 시간 규격 완성 ("HH:MM:SS")
       const scheduled_time = `${formattedHour}:${formattedMinute}:00`;
 
@@ -127,13 +127,13 @@ export default function ScheduleManager() {
   };
 
   return (
-    
+
       <div className="w-full h-full py-6 flex flex-col font-sans relative">
-        
+
         {/* 헤더 타이틀 바 */}
         <div className="flex items-center justify-start mb-6">
-          <button 
-            onClick={() => navigate('/mypage')} 
+          <button
+            onClick={() => navigate('/mypage')}
             className="hover:opacity-70 transition-opacity p-1"
           >
           <img src={backIcon} alt="뒤로가기" className="w-6 h-6" />
@@ -144,8 +144,8 @@ export default function ScheduleManager() {
         {/* [날짜] 달력 컴포넌트 구역 */}
         <div className="mb-6 flex flex-col gap-2">
           <p className="text-[18px]">날짜 설정</p>
-          <input 
-            type="date" 
+          <input
+            type="date"
             value={selectedDate}
             min={getTodayString()}
             onChange={(e) => setSelectedDate(e.target.value)}
@@ -156,13 +156,13 @@ export default function ScheduleManager() {
         {/* 🛠️ [시간] 삼각형 클릭 + 키보드 직접 입력 하이브리드 구역 */}
         <div className="mb-6">
         <p className="text-[18px] mb-2 font-bold text-gray-800">시간 설정</p>
-        
+
         {/* 두 번째 사진처럼 회색 박스 안에 모든 요소를 가로(row)로 나란히 가둡니다 */}
-        <div 
-          style={{ 
-            display: "flex", 
-            flexDirection: "row", 
-            alignItems: "center", 
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
             justifyContent: "space-between",
             backgroundColor: "#f6f6f6",
             borderRadius: "12px",
@@ -171,7 +171,7 @@ export default function ScheduleManager() {
             userSelect: "none"
           }}
         >
-          
+
           {/* [오전/오후 조작단] 내부 요소를 세로(column)로 정렬 */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
             <button onClick={toggleAmpm} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▲</button>
@@ -187,7 +187,7 @@ export default function ScheduleManager() {
           {/* [시(Hour)] 내부 요소를 세로(column)로 정렬 */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
             <button onClick={increaseHour} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▲</button>
-            <input 
+            <input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -206,7 +206,7 @@ export default function ScheduleManager() {
           {/* [분(Minute)] 내부 요소를 세로(column)로 정렬 */}
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", flex: 1 }}>
             <button onClick={increaseMinute} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▲</button>
-            <input 
+            <input
               type="text"
               inputMode="numeric"
               pattern="[0-9]*"
@@ -219,7 +219,7 @@ export default function ScheduleManager() {
             <button onClick={decreaseMinute} className="text-gray-400 hover:text-black font-bold p-1 text-xs">▼</button>
           </div>
         </div>
-        
+
 
         {/* [반복] 라디오 버튼 토글 구역 */}
         <div className="mb-8">
@@ -227,10 +227,10 @@ export default function ScheduleManager() {
         <div className="bg-[#f6f6f6] rounded-xl p-4 flex justify-around items-center">
           {["매일", "매주", "없음"].map((type) => (
             <label key={type} className="flex items-center gap-2 cursor-pointer text-md font-medium text-gray-700">
-              <input 
-                type="radio" 
-                name="repeat" 
-                checked={repeatType === type} 
+              <input
+                type="radio"
+                name="repeat"
+                checked={repeatType === type}
                 onChange={() => setRepeatType(type)}
                 className="w-4 h-4 accent-black"
               /> {type === "없음" ? "안함" : type}
