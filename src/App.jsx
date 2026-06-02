@@ -4,6 +4,7 @@ import Index from "./pages/Auth/index"
 import Login from "./pages/Auth/Login"
 import Account from "./pages/Auth/Account"
 import ResetPassword from "./pages/Auth/ResetPassword"
+import Dashboard from "./pages/Dashboard/Index"
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
                 <Route path="/account/elder" element={<Account type="elder"/>} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Route>
             </Routes>
           </BrowserRouter>
