@@ -15,7 +15,8 @@ export default function App() {
             <Routes>
               <Route element={<AppLayout />}>
                 <Route path="/" element={<Index />} />
-                <Route path="/account" element={<Account/>} />
+                <Route path="/account" element={<Account type="guardian"/>} />
+                <Route path="/account/elder" element={<Account type="elder"/>} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/schedule" element={<ScheduleManager />} />
