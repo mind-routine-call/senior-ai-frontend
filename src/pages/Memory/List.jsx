@@ -1,7 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function MemoryList() {
   // 임시 데이터 (API 연동할 부분)
+  const navigate = useNavigate();
   const dummyMemories = [
     { memory_id: 1, title: '봄꽃 구경 갔던 날', memory_date: '2025-05-14' },
     { memory_id: 2, title: '손주 백일잔치', memory_date: '2025-04-20' },
@@ -30,8 +32,8 @@ export default function MemoryList() {
 
         {/* 3. 새 메모리 추가 버튼 (+) */}
         <div 
-          className="bg-[#e5e7eb] p-5 rounded-md flex justify-center items-center cursor-pointer hover:bg-gray-300 transition-colors mt-1 h-20"
-          onClick={() => console.log('작성 페이지로 이동')}
+        className="bg-[#e5e7eb] p-5 rounded-md flex justify-center items-center cursor-pointer hover:bg-gray-300 transition-colors mt-1 h-20"
+        onClick={() => navigate('/memory/write')}
         >
           <div className="w-6 h-6 bg-gray-300 rounded-full flex items-center justify-center">
             <span className="text-white text-lg font-bold leading-none mb-0.5">+</span>

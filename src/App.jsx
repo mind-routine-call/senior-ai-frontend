@@ -6,6 +6,7 @@ import Account from "./pages/Auth/Account"
 import ResetPassword from "./pages/Auth/ResetPassword"
 import ScheduleManager from "./pages/Schedule/ScheduleManager";
 import MemoryList from './pages/Memory/List';
+import MemoryWrite from './pages/Memory/Write';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/schedule" element={<ScheduleManager />} />
                 <Route path="/memory" element={<MemoryList />} />
+                <Route path="/memory/write" element={<MemoryWrite />} />
               </Route>
             </Routes>
           </BrowserRouter>
