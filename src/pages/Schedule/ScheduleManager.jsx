@@ -4,15 +4,19 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import Button from "../../components/Button";
-import Input from "../../components/Input";
 import backIcon from "../../assets/img/back.svg";
-import mind_routine from "../../assets/img/mind_routine.svg";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const DEFAULT_ELDER_ID = 1;
+const DEFAULT_SCENARIO_ID = 2;
+
+const getTodayString = () => new Date().toISOString().slice(0, 10);
 
 export default function ScheduleManager() {
   const navigate = useNavigate();
 
   // 1. 입력 폼 상태 관리 (State)
-  const [selectedDate, setSelectedDate] = useState("2026-06-01");
+  const [selectedDate, setSelectedDate] = useState(getTodayString);
   const [ampm, setAmpm] = useState("오전");
   const [hour, setHour] = useState("10");
   const [minute, setMinute] = useState("00");
@@ -21,10 +25,6 @@ export default function ScheduleManager() {
   // 예약 완료 팝업
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
-
-  // 가상의 기본 데이터 (연결하면서 수정하기!!!)
-  const DEFAULT_ELDER_ID = 1;
-  const DEFAULT_SCENARIO_ID = 2;
 
 // 오전 ↔ 오후 토글
   const toggleAmpm = () => {
@@ -107,7 +107,7 @@ export default function ScheduleManager() {
       const scheduled_time = `${formattedHour}:${formattedMinute}:00`;
 
       // 백엔드로 실시간 데이터 송신
-      const response = await axios.post("http://localhost:3000/api/v1/schedules/create", {
+      const response = await axios.post(`${API_BASE_URL}/api/v1/schedules/create`, {
         elder_id: DEFAULT_ELDER_ID,
         scenario_id: DEFAULT_SCENARIO_ID,
         scheduled_time,
@@ -147,6 +147,7 @@ export default function ScheduleManager() {
           <input 
             type="date" 
             value={selectedDate}
+            min={getTodayString()}
             onChange={(e) => setSelectedDate(e.target.value)}
             className="w-full bg-[#f6f6f6] h-15 rounded-lg px-4 font-bold text-center text-gray-800 focus:outline-none focus:border border-blue-400"
           />
