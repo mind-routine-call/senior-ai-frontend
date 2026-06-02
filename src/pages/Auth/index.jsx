@@ -1,4 +1,4 @@
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import logo from '../../assets/img/mind_routine.svg'
 import Button from "../../components/Button"
 

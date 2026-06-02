@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
 })
 
 client.interceptors.request.use((config) => {
@@ -22,7 +22,7 @@ export const verifySms = (data) =>
 
 // 회원가입 - 초대코드 인증
 export const verifyInviteCode = (data) =>
-  client.post('/api/v1/signup/invite-vertify', data)
+  client.post('/api/v1/signup/invite-verify', data)
 
 // 보호자 회원가입
 export const guardianSignup = (data) =>
