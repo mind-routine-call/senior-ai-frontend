@@ -1,9 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Dashboard() {
   const [summaryData, setSummaryData] = useState(null);
-  const [chartsData, setChartsData] = useState(null);
   const [chatsData, setChatsData] = useState(null);
 
   // 임시 어르신 ID 
@@ -12,14 +13,13 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
-        const [summaryRes, chartsRes, chatsRes] = await Promise.all([
-          axios.get(`http://localhost:3000/api/v1/dashboard/${elderId}/summary`),
-          axios.get(`http://localhost:3000/api/v1/dashboard/${elderId}/charts`),
-          axios.get(`http://localhost:3000/api/v1/dashboard/${elderId}/chats`)
+        const [summaryRes, , chatsRes] = await Promise.all([
+          axios.get(`${API_BASE_URL}/api/v1/dashboard/${elderId}/summary`),
+          axios.get(`${API_BASE_URL}/api/v1/dashboard/${elderId}/charts`),
+          axios.get(`${API_BASE_URL}/api/v1/dashboard/${elderId}/chats`)
         ]);
 
         setSummaryData(summaryRes.data.result);
-        setChartsData(chartsRes.data.result);
         setChatsData(chatsRes.data.result);
         
         console.log("데이터 가져오기 성공!");
