@@ -13,7 +13,7 @@ export default function MemoryList() {
   useEffect(() => {
     const fetchMemories = async () => {
       try {
-        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/memories/${elderId}`);
+        const response = await axios.get(`${import.meta.env.VITE_API_URL}/api/v1/memories/list/${elderId}`);
         
         if (response.data.isSuccess) {
           setMemories(response.data.result);
@@ -46,6 +46,7 @@ export default function MemoryList() {
             <div
               key={memory.memory_id}
               className="bg-[#e5e7eb] p-5 rounded-md flex flex-col justify-center cursor-pointer hover:bg-gray-300 transition-colors"
+              onClick={() => navigate('/memory/write', { state: { memory } })}
             >
               <span className="font-bold text-gray-800 text-[15px] mb-1">{memory.title}</span>
               <span className="text-sm text-gray-700">
