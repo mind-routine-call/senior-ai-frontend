@@ -1,42 +1,39 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'; 
 
 const NotificationCenter = () => {
   const navigate = useNavigate();
 
-  // 실시간 알림 목록 더미 데이터
-  const alerts = [
-    {
-      id: 1,
-      elderlyName: "김푸름 어르신",
-      type: "심각",
-      message: "대명사의 과도한 반복(6회) 및 발음 정확도 저하(55%) 감지!",
-      time: "방금 전",
-      isRead: false
-    },
-    {
-      id: 2,
-      elderlyName: "박아름 어르신",
-      type: "주의",
-      message: "최종 인지 능력 점수가 임계치 미만(62점)으로 하락했습니다.",
-      time: "2시간 전",
-      isRead: false
-    },
-    {
-      id: 3,
-      elderlyName: "김푸름 어르신",
-      type: "정상",
-      message: "오늘의 인지 케어 대화가 안정적으로 완료되었습니다.",
-      time: "어제",
-      isRead: true
-    }
-  ];
+  const [alerts, setAlerts] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await axios.get('http://localhost:3000/api/v1/analysis/notifications');
+        
+        if (response.data && response.data.success) {
+          setAlerts(response.data.data);
+        }
+      } catch (error) {
+        console.error("이상징후 알림 목록을 불러오는데 실패했습니다 ㅜㅜ:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
+
+  if (loading) {
+    return <div style={{ textAlign: 'center', paddingTop: '100px', color: '#868e96' }}>⏳ 실시간 이상징후 분석 데이터 불러오는 중...</div>;
+  }
 
   return (
     <div style={{ 
       backgroundColor: '#f1f3f5', 
       minHeight: '100vh', 
-      // 💡 컨테이너 자체를 폰 노치 밑으로 완전히 끄집어 내리기 위해 상단 바깥 여백을 64px로 대폭 증가!
       padding: '64px 16px 16px 16px', 
       fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
       display: 'flex',
@@ -53,7 +50,7 @@ const NotificationCenter = () => {
         boxShadow: '0 4px 32px rgba(0,0,0,0.05)'
       }}>
         
-        {/* 상단 헤더 영역 (원래대로 내부 패딩은 깔끔하게 복구) */}
+        {/* 상단 헤더 영역 */}
         <div style={{ 
           padding: '24px 24px 16px 24px', 
           borderBottom: '1px solid #e9ecef',
@@ -72,73 +69,79 @@ const NotificationCenter = () => {
             padding: '2px 8px', 
             borderRadius: '10px' 
           }}>
+            {/* 읽지 않은 알림 개수 실시간 반영 */}
             {alerts.filter(a => !a.isRead).length}
           </span>
         </div>
 
         {/* 알림 리스트 목록 */}
         <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          {alerts.map((alert) => {
-            const isDanger = alert.type === "심각";
-            const isWarning = alert.type === "주의";
-            
-            let cardBg = '#f8f9fa';
-            let borderColor = '#e9ecef';
-            let badgeBg = '#adb5bd';
-            
-            if (isDanger) {
-              cardBg = '#fff5f5';
-              borderColor = '#ffc9c9';
-              badgeBg = '#f03e3e';
-            } else if (isWarning) {
-              cardBg = '#fff9db';
-              borderColor = '#ffe066';
-              badgeBg = '#f59f00';
-            }
+          {/* DB에 알림이 하나도 없을 때 처리 */}
+          {alerts.length === 0 ? (
+            <div style={{ textAlign: 'center', color: '#adb5bd', fontSize: '14px', padding: '40px 0' }}>
+              🎉 아직 감지된 이상징후 알림이 없습니다.
+            </div>
+          ) : (
+            alerts.map((alert) => {
+              const isDanger = alert.type === "심각";
+              const isWarning = alert.type === "주의";
+              
+              let cardBg = '#f8f9fa';
+              let borderColor = '#e9ecef';
+              let badgeBg = '#adb5bd';
+              
+              if (isDanger) {
+                cardBg = '#fff5f5';
+                borderColor = '#ffc9c9';
+                badgeBg = '#f03e3e';
+              } else if (isWarning) {
+                cardBg = '#fff9db';
+                borderColor = '#ffe066';
+                badgeBg = '#f59f00';
+              }
 
-            return (
-              <div 
-                key={alert.id} 
-                onClick={() => {
-                  console.log(`${alert.id}번 알림 클릭됨! 나중에 상세 리포트로 연결 예정`);
-                }}
-                style={{
-                  backgroundColor: cardBg,
-                  border: `1px solid ${borderColor}`,
-                  borderRadius: '16px',
-                  padding: '16px',
-                  position: 'relative',
-                  opacity: alert.isRead ? 0.6 : 1,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s ease'
-                }}
-              >
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#343a40' }}>
-                    {alert.elderlyName}
-                  </span>
-                  <span style={{ 
-                    backgroundColor: badgeBg, 
-                    color: '#fff', 
-                    fontSize: '10px', 
-                    fontWeight: 'bold', 
-                    padding: '2px 6px', 
-                    borderRadius: '4px' 
-                  }}>
-                    {alert.type}
-                  </span>
+              return (
+                <div 
+                  key={alert.id} 
+                  onClick={() => console.log(`${alert.id}번 알림 상세 보기 기능은 다음 주차에!`)}
+                  style={{
+                    backgroundColor: cardBg,
+                    border: `1px solid ${borderColor}`,
+                    borderRadius: '16px',
+                    padding: '16px',
+                    position: 'relative',
+                    opacity: alert.isRead ? 0.6 : 1,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                >
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 'bold', color: '#343a40' }}>
+                      {alert.elderlyName}
+                    </span>
+                    <span style={{ 
+                      backgroundColor: badgeBg, 
+                      color: '#fff', 
+                      fontSize: '10px', 
+                      fontWeight: 'bold', 
+                      padding: '2px 6px', 
+                      borderRadius: '4px' 
+                    }}>
+                      {alert.type}
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: '13px', color: '#495057', margin: '0 0 8px 0', lineHeight: '1.4' }}>
+                    {alert.message}
+                  </p>
+
+                  <div style={{ fontSize: '11px', color: '#adb5bd', textAlign: 'right' }}>
+                    {alert.time}
+                  </div>
                 </div>
-
-                <p style={{ fontSize: '13px', color: '#495057', margin: '0 0 8px 0', lineHeight: '1.4' }}>
-                  {alert.message}
-                </p>
-
-                <div style={{ fontSize: '11px', color: '#adb5bd', textAlign: 'right' }}>
-                  {alert.time}
-                </div>
-              </div>
-            );
-          })}
+              );
+            })
+          )}
         </div>
 
       </div>
