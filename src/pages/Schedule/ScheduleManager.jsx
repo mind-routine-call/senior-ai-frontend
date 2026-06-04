@@ -92,6 +92,18 @@ export default function ScheduleManager() {
   // 3. 예약하기 버튼 클릭 이벤트 핸들러
   const handleReservation = async () => {
     try {
+      // ✨ 1. 브라우저 로컬 스토리지 창고에서 팀원이 저장해둔 토큰 꺼내오기
+      // (만약 팀원이 로컬스토리지에 저장한 키 이름이 'accessToken'이라면 'token' 대신 'accessToken'으로 바꾸셔야 합니다!)
+      const token = localStorage.getItem("accessToken") || localStorage.getItem("accessToken");
+
+      // 토큰이 아예 없다면 프론트단에서 1차 경고
+      if (!token) {
+        alert("로그인 정보가 없습니다. 다시 로그인해 주세요.");
+        navigate("/login");
+        return;
+      }
+
+
       // 오전/오후 단어를 백엔드가 좋아하는 24시간계 텍스트(HH)로 보정 연산
       let convertedHour = parseInt(hour, 10) || 12;
       if (ampm === "오후" && convertedHour !== 12) {
@@ -112,7 +124,13 @@ export default function ScheduleManager() {
         scenario_id: DEFAULT_SCENARIO_ID,
         scheduled_time,
         repeat_type: repeatType
-      });
+      },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
 
       // DB 저장에 성공했다면?
       if (response.data.success) {
@@ -243,6 +261,14 @@ export default function ScheduleManager() {
         <div className="mt-auto">
         <Button title="예약하기" main={true} onClick={handleReservation} />
       </div>
+
+      {/* ✨ 우측 하단 고정 플로팅 [조회하기] 버튼 추가 */}
+      <button
+        onClick={() => navigate(`/schedule/list/${DEFAULT_ELDER_ID}`)}
+        className="absolute bottom-24 right-4 bg-black text-white text-xs font-black w-14 h-14 rounded-full shadow-lg flex items-center justify-center hover:bg-gray-800 transition-colors z-40"
+      >
+        조회하기
+      </button>
     </div>
 
       {/* ────────────────────────────────────────────────────────── */}
