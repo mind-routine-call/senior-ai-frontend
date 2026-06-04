@@ -103,7 +103,8 @@ const NotificationCenter = () => {
               return (
                 <div 
                   key={alert.id} 
-                  onClick={() => console.log(`${alert.id}번 알림 상세 보기 기능은 다음 주차에!`)}
+                  /* 🔔 콘솔 로그 지우고 대시보드로 데이터 넘기며 이동하는 로직 반영! */
+                  onClick={() => navigate('/dashboard', { state: { selectedElder: alert.elderlyName } })}
                   style={{
                     backgroundColor: cardBg,
                     border: `1px solid ${borderColor}`,
