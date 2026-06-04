@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import axios from 'axios';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
@@ -41,9 +42,17 @@ export default function Dashboard() {
 
       {/* 0. 헤더 */}
       <div className="flex justify-between items-center px-2">
-        <h1 className="text-xl font-bold text-gray-800">mindroutine</h1>
-        <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-xl">👤</div>
-      </div>
+     <h1 className="text-xl font-bold text-gray-800">mindroutine</h1>
+     <div className="flex items-center gap-3">
+       <Link 
+         to="/notification" 
+         className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-xl hover:bg-gray-200 transition-colors cursor-pointer"
+       >
+         🔔
+       </Link>
+       <div className="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-xl">👤</div>
+     </div>
+   </div>
 
       {/* 1. 어르신 프로필 */}
       <div className="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-4 mx-1">
