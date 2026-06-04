@@ -92,11 +92,8 @@ export default function ScheduleManager() {
   // 3. 예약하기 버튼 클릭 이벤트 핸들러
   const handleReservation = async () => {
     try {
-      // ✨ 1. 브라우저 로컬 스토리지 창고에서 팀원이 저장해둔 토큰 꺼내오기
-      // (만약 팀원이 로컬스토리지에 저장한 키 이름이 'accessToken'이라면 'token' 대신 'accessToken'으로 바꾸셔야 합니다!)
       const token = localStorage.getItem("accessToken") || localStorage.getItem("accessToken");
 
-      // 토큰이 아예 없다면 프론트단에서 1차 경고
       if (!token) {
         alert("로그인 정보가 없습니다. 다시 로그인해 주세요.");
         navigate("/login");
@@ -104,7 +101,7 @@ export default function ScheduleManager() {
       }
 
 
-      // 오전/오후 단어를 백엔드가 좋아하는 24시간계 텍스트(HH)로 보정 연산
+      // 오전/오후를 24시간계 텍스트(HH)로 보정 연산
       let convertedHour = parseInt(hour, 10) || 12;
       if (ampm === "오후" && convertedHour !== 12) {
         convertedHour += 12;
@@ -132,7 +129,7 @@ export default function ScheduleManager() {
     }
   );
 
-      // DB 저장에 성공했다면?
+      // DB 저장에 성공
       if (response.data.success) {
   const [year, month, day] = selectedDate.split("-");
   setModalMessage(`${year}년 ${month}월 ${day}일 ${ampm} ${hour}시 ${minute}분 채팅 예약이 완료되었습니다.`);

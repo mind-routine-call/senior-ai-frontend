@@ -13,7 +13,6 @@ export default function ScheduleList() {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🛠️ 수정용 모달 상태 관리들
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [targetScheduleId, setTargetScheduleId] = useState(null);
   const [editDate, setEditDate] = useState("2026-06-01");
@@ -22,7 +21,6 @@ export default function ScheduleList() {
   const [editMinute, setEditMinute] = useState("00");
   const [editRepeat, setEditRepeat] = useState("매주"); 
 
-  // ✨ [해결책] 조회 함수를 바깥으로 완전히 독립시켰고, 두 가지 토큰 명칭에 완벽 대응하게 통합했습니다.
   const fetchSchedules = async () => {
     try {
       const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
@@ -50,11 +48,10 @@ export default function ScheduleList() {
     fetchSchedules();
   }, [elderId]);
 
-  // 2. 🗑️ 삭제하기 API 연동 처리
+  // 삭제하기
   const handleDelete = async (scheduleId) => {
     if (!window.confirm("해당 일정을 삭제하시겠습니까?")) return;
     try {
-      // ✨ 토큰 백업 다중 검증 장착
       const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
       
       const response = await axios.post(
@@ -65,7 +62,7 @@ export default function ScheduleList() {
       
       if (response.data.success) {
         alert("일정이 정상적으로 삭제되었습니다.");
-        fetchSchedules(); // ✨ 이제 바깥의 무적 함수가 작동하며 리스트가 새로고침됩니다!
+        fetchSchedules(); 
       }
     } catch (error) {
       console.error(error);
@@ -73,7 +70,7 @@ export default function ScheduleList() {
     }
   };
 
-  // 3. ✍️ 수정 팝업창 열기 핸들러 (기존 데이터 세팅)
+  // 수정 
   const openEditModal = (schedule) => {
     setTargetScheduleId(schedule.schedule_id);
     setEditRepeat(schedule.repeat_type === "없음" ? "매주" : schedule.repeat_type);
@@ -92,10 +89,9 @@ export default function ScheduleList() {
     setIsEditModalOpen(true);
   };
 
-  // 4. 💾 수정하기 최종 제출 API 연동 처리
+  // 수정하기 최종 제출 
   const handleUpdateSubmit = async () => {
     try {
-      // ✨ 토큰 백업 다중 검증 장착
       const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
       
       // 24시간계 시간 보정 연산
@@ -126,7 +122,6 @@ export default function ScheduleList() {
     }
   };
 
-  // ⏳ 삼각형 컨트롤용 인라인 도우미 함수들
   const toggleAmpm = () => setEditAmpm((p) => (p === "오전" ? "오후" : "오전"));
   const adjustHour = (dir) => {
     let curr = parseInt(editHour, 10) || 12;
@@ -256,7 +251,7 @@ export default function ScheduleList() {
             <div className="bg-[#e6fbf7] rounded-xl p-3 flex items-center justify-between mb-6 border border-[#cdf5ed]">
               <span className="font-bold text-gray-800 text-xs">반복 설정하기</span>
               <div className="flex gap-4">
-                {["매주", "매달"].map((type) => (
+                {["매일", "매주", "없음"].map((type) => (
                   <label key={type} className="flex items-center gap-1 cursor-pointer text-xs font-bold text-gray-700">
                     <input 
                       type="radio" 
