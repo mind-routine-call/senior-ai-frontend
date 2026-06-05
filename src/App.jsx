@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
+import RoleGuard from "./components/RoleGuard";
 import Index from "./pages/Auth/index";
 import Login from "./pages/Auth/Login";
 import Account from "./pages/Auth/Account";
@@ -27,21 +28,25 @@ export default function App() {
                 <Route path="/account/elder" element={<Account type="elder" />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/dashboard/:elderId" element={<Dashboard />} />
-                <Route path="/schedule" element={<ScheduleManager />} />
-                <Route path="/schedule/:elderId" element={<ScheduleManager />} />
-                <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
-                <Route path="/notification" element={<NotificationCenter />} />
-                <Route path="/notification/:elderId" element={<NotificationCenter />} />
-                <Route path="/memory" element={<MemoryList />} />
-                <Route path="/memory/:elderId" element={<MemoryList />} />
-                <Route path="/memory/write" element={<MemoryWrite />} />
-                <Route path="/memory/:elderId/write" element={<MemoryWrite />} />
-                <Route path="/elder-home" element={<ElderHome />} />
-                <Route path="/elder-onboarding" element={<ElderOnboarding />} />
-                <Route path="/elder-chat" element={<ElderChat />} />
-                <Route path="/chat" element={<ElderChat />} />
+                <Route element={<RoleGuard allowedRoles={["guardian"]} />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/dashboard/:elderId" element={<Dashboard />} />
+                  <Route path="/schedule" element={<ScheduleManager />} />
+                  <Route path="/schedule/:elderId" element={<ScheduleManager />} />
+                  <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
+                  <Route path="/notification" element={<NotificationCenter />} />
+                  <Route path="/notification/:elderId" element={<NotificationCenter />} />
+                  <Route path="/memory" element={<MemoryList />} />
+                  <Route path="/memory/:elderId" element={<MemoryList />} />
+                  <Route path="/memory/write" element={<MemoryWrite />} />
+                  <Route path="/memory/:elderId/write" element={<MemoryWrite />} />
+                </Route>
+                <Route element={<RoleGuard allowedRoles={["elder"]} />}>
+                  <Route path="/elder-home" element={<ElderHome />} />
+                  <Route path="/elder-onboarding" element={<ElderOnboarding />} />
+                  <Route path="/elder-chat" element={<ElderChat />} />
+                  <Route path="/chat" element={<ElderChat />} />
+                </Route>
               </Route>
             </Routes>
           </BrowserRouter>

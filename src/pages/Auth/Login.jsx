@@ -4,6 +4,10 @@ import back from '../../assets/img/back.svg'
 import Input from '../../components/Input'
 import Button from '../../components/Button'
 import { login } from '../../api/auth'
+import {
+  getDefaultPathForRole,
+  saveAuthSession,
+} from '../../utils/authSession'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -15,12 +19,22 @@ export default function Login() {
   }
 
   const handleLogin = async () => {
-    const res = await login({ phone: form.phone, password: form.password })
-    const { accessToken, refreshToken, role } = res.data.result
-    localStorage.setItem('accessToken', accessToken)
-    localStorage.setItem('refreshToken', refreshToken)
-    alert(`로그인 성공! 역할: ${role}`)
-    // navigate('/report') // 로그인 후 이동할 페이지로 변경
+    try {
+      const res = await login({ phone: form.phone, password: form.password })
+      const { accessToken, refreshToken, role } = res.data.result
+      const savedRole = saveAuthSession({ accessToken, refreshToken, role })
+
+      if (!savedRole) {
+        alert('사용자 역할을 확인할 수 없습니다.')
+        return
+      }
+
+      navigate(getDefaultPathForRole(savedRole), { replace: true })
+    } catch (error) {
+      const message =
+        error.response?.data?.message || '로그인에 실패했습니다. 입력 정보를 확인해주세요.'
+      alert(message)
+    }
   }
 
   return (
