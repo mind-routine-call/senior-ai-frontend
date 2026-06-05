@@ -10,6 +10,9 @@ import ScheduleList from "./pages/Schedule/ScheduleList";
 import NotificationCenter from "./pages/Notification/NotificationCenter";
 import MemoryList from "./pages/Memory/List";
 import MemoryWrite from "./pages/Memory/Write";
+import ElderHome from "./pages/Chat/ElderHome";
+import ElderOnboarding from "./pages/Chat/ElderOnboarding";
+import ElderChat from "./pages/Chat/ElderChat";
 
 export default function App() {
   return (
@@ -35,6 +38,10 @@ export default function App() {
                 <Route path="/memory/:elderId" element={<MemoryList />} />
                 <Route path="/memory/write" element={<MemoryWrite />} />
                 <Route path="/memory/:elderId/write" element={<MemoryWrite />} />
+                <Route path="/elder-home" element={<ElderHome />} />
+                <Route path="/elder-onboarding" element={<ElderOnboarding />} />
+                <Route path="/elder-chat" element={<ElderChat />} />
+                <Route path="/chat" element={<ElderChat />} />
               </Route>
             </Routes>
           </BrowserRouter>
