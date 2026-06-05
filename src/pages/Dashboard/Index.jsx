@@ -7,8 +7,8 @@ export default function Dashboard() {
   const [summaryData, setSummaryData] = useState(null);
   const [chatsData, setChatsData] = useState(null);
 
-  // 임시 어르신 ID
-  const elderId = 1;
+  // 임시 어르신 ID 
+  const elderId = 1; 
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -21,7 +21,7 @@ export default function Dashboard() {
 
         setSummaryData(summaryRes.data.result);
         setChatsData(chatsRes.data.result);
-
+        
         console.log("데이터 가져오기 성공!");
 
       } catch (error) {
@@ -35,7 +35,7 @@ export default function Dashboard() {
   const elder = summaryData?.elder || {};
   const latestAssessment = summaryData?.latest_assessment || {};
   const weeklyCallCount = summaryData?.weekly_call_count || 0;
-
+  
   return (
     <div className="flex flex-col gap-4 py-6 bg-gray-50 min-h-full pb-20 font-sans">
 
