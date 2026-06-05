@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import {
   CartesianGrid,
@@ -184,9 +184,12 @@ export default function Dashboard() {
             mindroutine
           </h1>
         </div>
-        <div className="rounded-full bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm">
+        <Link
+          className="rounded-full bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-600"
+          to={`/notification/${activeElderId}`}
+        >
           알림 {uncheckedAlertCount}건
-        </div>
+        </Link>
       </header>
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
