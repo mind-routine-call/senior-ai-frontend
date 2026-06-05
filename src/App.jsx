@@ -23,6 +23,7 @@ export default function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/:elderId" element={<Dashboard />} />
                 <Route path="/schedule" element={<ScheduleManager />} />
                 <Route path="/schedule/:elderId" element={<ScheduleManager />} />
                 <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
