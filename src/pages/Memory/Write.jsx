@@ -1,141 +1,210 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
+import { useMemo, useState } from "react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import axios from "axios";
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
 export default function MemoryWrite() {
   const navigate = useNavigate();
-  const location = useLocation(); 
-
+  const location = useLocation();
+  const { elderId: routeElderId } = useParams();
   const existingMemory = location.state?.memory;
 
-  const [title, setTitle] = useState(existingMemory ? existingMemory.title : '');
+  const activeElderId = useMemo(() => {
+    const query = new URLSearchParams(window.location.search);
+    return (
+      routeElderId ||
+      existingMemory?.elder_id ||
+      query.get("elder_id") ||
+      localStorage.getItem("selectedElderId") ||
+      localStorage.getItem("elder_id") ||
+      "1"
+    );
+  }, [existingMemory?.elder_id, routeElderId]);
+
+  const [title, setTitle] = useState(existingMemory?.title || "");
   const [memoryDate, setMemoryDate] = useState(
-    existingMemory ? String(existingMemory.memory_date).substring(0, 10) : ''
+    existingMemory?.memory_date
+      ? String(existingMemory.memory_date).substring(0, 10)
+      : "",
   );
-  const [content, setContent] = useState(existingMemory ? existingMemory.content || '' : '');
+  const [content, setContent] = useState(existingMemory?.content || "");
+  const [imageUrl, setImageUrl] = useState(existingMemory?.image_url || "");
+  const [isSaving, setIsSaving] = useState(false);
 
-  const elderId = 1; 
+  const config = useMemo(() => {
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("accessToken");
+    return token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+  }, []);
 
-  // [저장 / 수정] 버튼
-  const handleSave = async () => {
-    if (!title.trim()) return alert('추억 제목을 입력해주세요.');
-    if (!memoryDate) return alert('추억 날짜를 선택해주세요.');
-
-    try {
-      if (existingMemory) {
-        // 기존 메모리가 있다면 -> 수정 API (PATCH)
-        const response = await axios.patch(`${import.meta.env.VITE_API_URL}/api/v1/memories/update/${existingMemory.memory_id}`, {
-          title,
-          memory_date: memoryDate,
-          content,
-        });
-        if (response.data.isSuccess) {
-          alert('추억이 성공적으로 수정되었습니다.');
-          navigate('/memory');
-        }
-      } else {
-        // 기존 메모리가 없다면 -> 등록 API (POST)
-        const response = await axios.post(`${import.meta.env.VITE_API_URL}/api/v1/memories/upload`, {
-          elder_id: elderId,
-          title,
-          memory_date: memoryDate,
-          content,
-        });
-        if (response.data.isSuccess) {
-          alert('추억이 성공적으로 등록되었습니다.');
-          navigate('/memory');
-        }
-      }
-    } catch (error) {
-      console.error('저장/수정 실패:', error);
-      alert('오류가 발생했습니다.');
-    }
+  const moveToList = () => {
+    navigate(`/memory/${activeElderId}`);
   };
 
-  // [취소 / 삭제] 버튼
-  const handleDeleteOrCancel = async () => {
-    if (!existingMemory) {
-      // 새로 쓰는 중이었다면 그냥 뒤로 가기
-      navigate(-1);
+  const handleSave = async () => {
+    if (!title.trim()) {
+      alert("추억 제목을 입력해주세요.");
       return;
     }
 
-    if (!window.confirm('정말로 이 추억을 삭제하시겠습니까?')) return;
+    if (!memoryDate) {
+      alert("추억 날짜를 선택해주세요.");
+      return;
+    }
+
+    setIsSaving(true);
 
     try {
-      const response = await axios.delete(`${import.meta.env.VITE_API_URL}/api/v1/memories/delete/${existingMemory.memory_id}`);
-      if (response.data.isSuccess) {
-        alert('추억이 삭제되었습니다.');
-        navigate('/memory');
+      const payload = {
+        title: title.trim(),
+        memory_date: memoryDate,
+        content: content.trim() || null,
+        image_url: imageUrl.trim() || null,
+      };
+
+      if (existingMemory) {
+        const response = await axios.patch(
+          `${API_BASE_URL}/api/v1/memories/update/${existingMemory.memory_id}`,
+          payload,
+          config,
+        );
+
+        if (!(response.data?.isSuccess || response.data?.success)) {
+          throw new Error("등록메모리 수정 실패");
+        }
+
+        alert("추억이 수정되었습니다.");
+      } else {
+        const response = await axios.post(
+          `${API_BASE_URL}/api/v1/memories/upload`,
+          {
+            ...payload,
+            elder_id: Number(activeElderId),
+          },
+          config,
+        );
+
+        if (!(response.data?.isSuccess || response.data?.success)) {
+          throw new Error("등록메모리 등록 실패");
+        }
+
+        alert("추억이 등록되었습니다.");
       }
+
+      moveToList();
     } catch (error) {
-      console.error('삭제 실패:', error);
-      alert('삭제에 실패했습니다.');
+      console.error("등록메모리 저장 실패", error);
+      alert("저장 중 오류가 발생했습니다.");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDeleteOrCancel = async () => {
+    if (!existingMemory) {
+      moveToList();
+      return;
+    }
+
+    if (!window.confirm("이 추억을 삭제하시겠습니까?")) return;
+
+    setIsSaving(true);
+
+    try {
+      const response = await axios.delete(
+        `${API_BASE_URL}/api/v1/memories/delete/${existingMemory.memory_id}`,
+        config,
+      );
+
+      if (!(response.data?.isSuccess || response.data?.success)) {
+        throw new Error("등록메모리 삭제 실패");
+      }
+
+      alert("추억이 삭제되었습니다.");
+      moveToList();
+    } catch (error) {
+      console.error("등록메모리 삭제 실패", error);
+      alert("삭제 중 오류가 발생했습니다.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
   return (
-    <div className="flex flex-col gap-4 py-6 bg-white min-h-screen px-4 font-sans">
-      <div className="flex justify-between items-center mb-2">
-        <h1 className="text-xl font-bold text-gray-800">박어르신 등록메모리</h1>
-      </div>
+    <div className="flex min-h-full flex-col gap-5 bg-white py-6">
+      <header>
+        <p className="text-xs font-semibold text-indigo-500">등록메모리</p>
+        <h1 className="mt-1 text-2xl font-extrabold text-gray-900">
+          {existingMemory ? "추억 수정" : "추억 추가"}
+        </h1>
+        <p className="mt-2 text-sm font-medium leading-5 text-gray-500">
+          어르신과 AI가 자연스럽게 이야기할 수 있는 기억을 적어주세요.
+        </p>
+      </header>
 
-      <div className="flex flex-col gap-5">
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">추억제목</label>
-          <input 
-            type="text" 
+      <form className="flex flex-1 flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-bold text-gray-700">추억 제목</span>
+          <input
+            className="w-full rounded-xl bg-gray-100 p-4 text-base font-semibold outline-none focus:ring-2 focus:ring-indigo-200"
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="예: 봄날의 가족 여행"
+            type="text"
             value={title}
-            onChange={(e) => setTitle(e.target.value)} 
-            className="bg-[#e5e7eb] p-3.5 rounded-md w-full outline-none focus:ring-2 focus:ring-gray-400"
-            placeholder="제목을 입력하세요 (필수)"
           />
-        </div>
+        </label>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">추억날짜</label>
-          <input 
-            type="date" 
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-bold text-gray-700">추억 날짜</span>
+          <input
+            className="w-full rounded-xl bg-gray-100 p-4 text-base font-semibold text-gray-700 outline-none focus:ring-2 focus:ring-indigo-200"
+            onChange={(e) => setMemoryDate(e.target.value)}
+            type="date"
             value={memoryDate}
-            onChange={(e) => setMemoryDate(e.target.value)} 
-            className="bg-[#e5e7eb] p-3.5 rounded-md w-full outline-none focus:ring-2 focus:ring-gray-400 text-gray-700"
           />
-        </div>
+        </label>
 
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-semibold text-gray-700">상세설명내용</label>
-          <textarea 
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-bold text-gray-700">상세 내용</span>
+          <textarea
+            className="h-44 w-full resize-none rounded-xl bg-gray-100 p-4 text-base font-medium leading-6 outline-none focus:ring-2 focus:ring-indigo-200"
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="어르신이 기억하면 좋을 장소, 사람, 사건을 적어주세요."
             value={content}
-            onChange={(e) => setContent(e.target.value)} 
-            className="bg-[#e5e7eb] p-3.5 rounded-md w-full h-48 outline-none focus:ring-2 focus:ring-gray-400 resize-none"
-            placeholder="어르신과의 추억을 설명해주세요."
-          ></textarea>
-        </div>
+          />
+        </label>
 
-        <div className="flex flex-col gap-2 mb-4">
-          <label className="text-sm font-semibold text-gray-700">이미지 및 파일 업로드</label>
-          <div className="bg-[#e5e7eb] p-4 rounded-md w-full flex items-center justify-center text-gray-500 text-sm h-16 cursor-pointer hover:bg-gray-300 transition-colors">
-            <span>+ 사진을 선택해주세요</span>
-          </div>
-        </div>
-      </div>
+        <label className="flex flex-col gap-2">
+          <span className="text-sm font-bold text-gray-700">이미지 URL</span>
+          <input
+            className="w-full rounded-xl bg-gray-100 p-4 text-base font-medium outline-none focus:ring-2 focus:ring-indigo-200"
+            onChange={(e) => setImageUrl(e.target.value)}
+            placeholder="이미지 주소가 있으면 입력해주세요."
+            type="url"
+            value={imageUrl}
+          />
+        </label>
 
-      <div className="flex gap-3 mt-auto">
-        <button 
-          className="flex-1 bg-[#e5e7eb] text-gray-700 font-bold py-4 rounded-md hover:bg-gray-300 transition-colors"
-          onClick={handleDeleteOrCancel} 
-        >
-          {/* 기존 데이터면 '삭제', 아니면 '취소' */}
-          {existingMemory ? '삭제' : '취소'}
-        </button>
-        <button 
-          className="flex-1 bg-[#e5e7eb] text-gray-700 font-bold py-4 rounded-md hover:bg-gray-300 transition-colors"
-          onClick={handleSave} 
-        >
-          {/* 기존 데이터면 '수정', 아니면 '저장' */}
-          {existingMemory ? '수정' : '저장'}
-        </button>
-      </div>
+        <div className="mt-auto grid grid-cols-2 gap-3 pt-3">
+          <button
+            className="rounded-xl bg-gray-100 py-4 text-base font-extrabold text-gray-700 transition hover:bg-gray-200 disabled:opacity-50"
+            disabled={isSaving}
+            onClick={handleDeleteOrCancel}
+            type="button"
+          >
+            {existingMemory ? "삭제" : "취소"}
+          </button>
+          <button
+            className="rounded-xl bg-indigo-600 py-4 text-base font-extrabold text-white shadow-sm transition hover:bg-indigo-700 disabled:opacity-50"
+            disabled={isSaving}
+            onClick={handleSave}
+            type="button"
+          >
+            {isSaving ? "저장 중" : existingMemory ? "수정" : "저장"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
