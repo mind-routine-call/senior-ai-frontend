@@ -8,6 +8,8 @@ import Dashboard from "./pages/Dashboard/Index";
 import ScheduleManager from "./pages/Schedule/ScheduleManager";
 import ScheduleList from "./pages/Schedule/ScheduleList";
 import NotificationCenter from "./pages/Notification/NotificationCenter";
+import MemoryList from "./pages/Memory/List";
+import MemoryWrite from "./pages/Memory/Write";
 
 export default function App() {
   return (
@@ -29,6 +31,10 @@ export default function App() {
                 <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
                 <Route path="/notification" element={<NotificationCenter />} />
                 <Route path="/notification/:elderId" element={<NotificationCenter />} />
+                <Route path="/memory" element={<MemoryList />} />
+                <Route path="/memory/:elderId" element={<MemoryList />} />
+                <Route path="/memory/write" element={<MemoryWrite />} />
+                <Route path="/memory/:elderId/write" element={<MemoryWrite />} />
               </Route>
             </Routes>
           </BrowserRouter>
