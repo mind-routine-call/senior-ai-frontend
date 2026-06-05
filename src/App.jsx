@@ -6,6 +6,7 @@ import Account from "./pages/Auth/Account"
 import ResetPassword from "./pages/Auth/ResetPassword"
 import Dashboard from "./pages/Dashboard/Index"
 import ScheduleManager from "./pages/Schedule/ScheduleManager";
+import ScheduleList from "./pages/Schedule/ScheduleList";
 
 export default function App() {
   return (
@@ -22,6 +23,8 @@ export default function App() {
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/schedule" element={<ScheduleManager />} />
+                <Route path="/schedule/:elderId" element={<ScheduleManager />} />
+                <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
               </Route>
             </Routes>
           </BrowserRouter>
