@@ -33,6 +33,10 @@ export default function ElderChat() {
   const navigate = useNavigate()
   const recognitionRef = useRef(null)
   const listenStartedAtRef = useRef(null)
+  const liveTextRef = useRef('')
+  const finalTextRef = useRef('')
+  const confidenceRef = useRef(0.86)
+  const recognitionErrorRef = useRef(false)
   const turnOrderRef = useRef(1)
   const [callId, setCallId] = useState(null)
   const [turnIndex, setTurnIndex] = useState(0)
@@ -149,16 +153,17 @@ export default function ElderChat() {
     const recognition = new Recognition()
     recognition.lang = 'ko-KR'
     recognition.interimResults = true
-    recognition.continuous = false
+    recognition.continuous = true
     recognition.maxAlternatives = 1
     recognitionRef.current = recognition
     listenStartedAtRef.current = Date.now()
+    liveTextRef.current = ''
+    finalTextRef.current = ''
+    confidenceRef.current = 0.86
+    recognitionErrorRef.current = false
     setLiveText('')
     setErrorMessage('')
     setMode('listening')
-
-    let finalText = ''
-    let confidence = 0.86
 
     recognition.onresult = (event) => {
       const transcript = Array.from(event.results)
@@ -166,25 +171,29 @@ export default function ElderChat() {
         .join('')
       const latest = event.results[event.results.length - 1]
       if (latest?.isFinal) {
-        finalText = transcript
-        confidence = latest[0]?.confidence || confidence
+        finalTextRef.current = transcript
+        confidenceRef.current = latest[0]?.confidence || confidenceRef.current
       }
+      liveTextRef.current = transcript
       setLiveText(transcript)
     }
 
     recognition.onerror = () => {
+      recognitionErrorRef.current = true
       setMode('retry')
       setErrorMessage('주변 소리가 커서 잘 듣지 못했어요. 다시 말씀해 주세요.')
     }
 
     recognition.onend = () => {
-      if (mode === 'retry') return
-      if (!finalText && !liveText) {
+      if (recognitionErrorRef.current) return
+
+      const capturedText = finalTextRef.current || liveTextRef.current
+      if (!capturedText) {
         setMode('retry')
-        setErrorMessage('말씀을 감지하지 못했어요. 마이크 버튼을 누르고 다시 말씀해 주세요.')
+        setErrorMessage('말씀을 감지하지 못했어요. 말하기 버튼을 누르고 다시 말씀해 주세요.')
         return
       }
-      handleRecognizedAnswer(finalText || liveText, confidence)
+      handleRecognizedAnswer(capturedText, confidenceRef.current)
     }
 
     recognition.start()
@@ -225,45 +234,55 @@ export default function ElderChat() {
 
   return (
     <main className="elder-shell elder-shell--chat">
-      <header className="chat-header">
-        <button className="icon-button" type="button" onClick={() => navigate('/elder-home')} aria-label="홈으로 돌아가기">
-          <ArrowLeft size={24} strokeWidth={2.4} />
-        </button>
-        <div>
-          <p className="eyebrow">AI 대화</p>
-          <h1>{mode === 'listening' ? '말씀을 듣고 있어요' : '천천히 대화해요'}</h1>
-        </div>
-        <button className="icon-button" type="button" onClick={endChat} aria-label="대화 종료">
-          <X size={24} strokeWidth={2.4} />
-        </button>
-      </header>
+      <section className="chat-top-panel">
+        <header className="chat-header">
+          <button className="icon-button icon-button--flat" type="button" onClick={() => navigate('/elder-home')} aria-label="홈으로 돌아가기">
+            <ArrowLeft size={24} strokeWidth={2.4} />
+          </button>
+          <h1>대화 중</h1>
+          <button className="end-call-button" type="button" onClick={endChat} aria-label="대화 종료">
+            <X size={20} strokeWidth={2.7} />
+            대화 종료
+          </button>
+        </header>
 
-      <section className="chat-stage">
-        <ChatFace listening={mode === 'listening'} />
+        <div className="chat-profile">
+          <ChatFace listening={mode === 'listening'} compact />
+          <div>
+            <h2>AI 친구</h2>
+            <p>
+              <span className="live-dot" />
+              {mode === 'listening' ? '말씀을 듣고 있어요' : '이야기 중이에요'}
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="chat-conversation">
         <div className="status-pill">
           <Headphones size={18} strokeWidth={2.4} />
           {mode === 'listening' ? '듣는 중' : '대기 중'}
         </div>
-      </section>
 
-      <section className="message-list" aria-live="polite">
-        {messages.map((message) => (
-          <article key={message.id} className={`message-bubble message-bubble--${message.speaker}`}>
-            <span>{message.speaker === 'ai' ? '마인드루틴' : '나'}</span>
-            <p>{message.text}</p>
-            {message.analysis && (
-              <small>
-                반복 단어 {message.analysis.repeated_word_count}개 · 불명확 표현 {message.analysis.vague_word_count}개
-              </small>
-            )}
-          </article>
-        ))}
-        {liveText && mode === 'listening' && (
-          <article className="message-bubble message-bubble--elder message-bubble--live">
-            <span>인식 중</span>
-            <p>{liveText}</p>
-          </article>
-        )}
+        <div className="message-list" aria-live="polite">
+          {messages.map((message) => (
+            <article key={message.id} className={`message-bubble message-bubble--${message.speaker}`}>
+              <span>{message.speaker === 'ai' ? '마인드루틴' : '나'}</span>
+              <p>{message.text}</p>
+              {message.analysis && (
+                <small>
+                  반복 단어 {message.analysis.repeated_word_count}개 · 불명확 표현 {message.analysis.vague_word_count}개
+                </small>
+              )}
+            </article>
+          ))}
+          {liveText && mode === 'listening' && (
+            <article className="message-bubble message-bubble--elder message-bubble--live">
+              <span>인식 중</span>
+              <p>{liveText}</p>
+            </article>
+          )}
+        </div>
       </section>
 
       {mode === 'retry' && (
@@ -286,12 +305,13 @@ export default function ElderChat() {
           className={`mic-action ${mode === 'listening' ? 'mic-action--active' : ''}`}
           type="button"
           onClick={mode === 'listening' ? stopListening : startListening}
+          aria-pressed={mode === 'listening'}
         >
           {mode === 'listening' ? <Send size={30} strokeWidth={2.4} /> : <Mic size={34} strokeWidth={2.4} />}
-          {mode === 'listening' ? '말씀 끝났어요' : '말하기'}
+          {mode === 'listening' ? '말하기 끝내기' : '말하기 시작'}
         </button>
         <p className="support-note">
-          {speechSupported ? '마이크를 누르고 편하게 말씀해 주세요.' : '크롬 브라우저에서 음성 인식을 사용할 수 있어요.'}
+          {speechSupported ? '한 번 누르고 말씀하신 뒤, 끝나면 다시 눌러 주세요.' : '크롬 브라우저에서 음성 인식을 사용할 수 있어요.'}
         </p>
       </footer>
     </main>
