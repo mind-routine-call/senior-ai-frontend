@@ -26,6 +26,7 @@ const getActiveElderId = (routeElderId, searchParams) =>
   DEMO_ELDER_ID;
 
 const isSuccessResponse = (data) => data?.isSuccess === true || data?.success === true;
+const getTodayString = () => new Date().toISOString().slice(0, 10);
 
 const toScheduledTime = (ampm, hour, minute) => {
   let convertedHour = parseInt(hour, 10) || 12;
@@ -47,6 +48,7 @@ export default function ScheduleManager() {
   const [searchParams] = useSearchParams();
   const activeElderId = getActiveElderId(elderId, searchParams);
 
+  const [selectedDate, setSelectedDate] = useState(getTodayString);
   const [ampm, setAmpm] = useState("오전");
   const [hour, setHour] = useState("10");
   const [minute, setMinute] = useState("00");
@@ -126,6 +128,7 @@ export default function ScheduleManager() {
         {
           elder_id: Number(activeElderId),
           scenario_id: DEFAULT_SCENARIO_ID,
+          scheduled_date: selectedDate,
           scheduled_time,
           repeat_type: repeatType,
         },
@@ -138,7 +141,7 @@ export default function ScheduleManager() {
 
       if (isSuccessResponse(response.data)) {
         setModalMessage(
-          `${repeatType} ${ampm} ${hour}시 ${minute}분 대화 일정이 예약되었습니다.`,
+          `${selectedDate} ${repeatType} ${ampm} ${hour}시 ${minute}분 대화 일정이 예약되었습니다.`,
         );
         setIsModalOpen(true);
       }
@@ -162,6 +165,20 @@ export default function ScheduleManager() {
           <img src={backIcon} alt="" className="h-6 w-6" />
         </button>
         <h1 className="ml-3 text-[20px] font-black text-gray-900">대화 일정 예약하기</h1>
+      </div>
+
+      <div className="mb-6 flex flex-col gap-2">
+        <label htmlFor="schedule-date" className="text-[18px] font-bold text-gray-800">
+          날짜 설정
+        </label>
+        <input
+          id="schedule-date"
+          type="date"
+          value={selectedDate}
+          min={getTodayString()}
+          onChange={(event) => setSelectedDate(event.target.value)}
+          className="h-15 w-full rounded-xl bg-[#f6f6f6] px-4 text-center font-bold text-gray-800 focus:border focus:border-blue-400 focus:outline-none"
+        />
       </div>
 
       <div className="mb-6">

@@ -20,6 +20,7 @@ const getStoredElderId = () =>
 const getActiveElderId = (routeElderId) => routeElderId || getStoredElderId() || DEMO_ELDER_ID;
 
 const isSuccessResponse = (data) => data?.isSuccess === true || data?.success === true;
+const getTodayString = () => new Date().toISOString().slice(0, 10);
 
 const toScheduledTime = (ampm, hour, minute) => {
   let convertedHour = parseInt(hour, 10) || 12;
@@ -48,6 +49,13 @@ const toDisplayTime = (timeString, repeatType) => {
   return `${repeatType || "반복 없음"} ${ampmText} ${hourNumber}시 ${minuteText}분`;
 };
 
+const toDisplayDate = (dateString) => {
+  if (!dateString) return "날짜 미정";
+
+  const [year, month, day] = String(dateString).slice(0, 10).split("-");
+  return `${year}년 ${Number(month)}월 ${Number(day)}일`;
+};
+
 export default function ScheduleList() {
   const navigate = useNavigate();
   const { elderId } = useParams();
@@ -57,6 +65,7 @@ export default function ScheduleList() {
 
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [targetScheduleId, setTargetScheduleId] = useState(null);
+  const [editDate, setEditDate] = useState(getTodayString);
   const [editAmpm, setEditAmpm] = useState("오전");
   const [editHour, setEditHour] = useState("10");
   const [editMinute, setEditMinute] = useState("00");
@@ -171,6 +180,7 @@ export default function ScheduleList() {
 
   const openEditModal = (schedule) => {
     setTargetScheduleId(schedule.schedule_id);
+    setEditDate(schedule.scheduled_date ? String(schedule.scheduled_date).slice(0, 10) : getTodayString());
     setEditRepeat(schedule.repeat_type || "매일");
 
     if (schedule.scheduled_time) {
@@ -202,6 +212,7 @@ export default function ScheduleList() {
         `${API_BASE_URL}/api/v1/schedules/update`,
         {
           schedule_id: targetScheduleId,
+          scheduled_date: editDate,
           scheduled_time: toScheduledTime(editAmpm, editHour, editMinute),
           repeat_type: editRepeat,
         },
@@ -283,6 +294,10 @@ export default function ScheduleList() {
               </div>
 
               <p className="text-[15px] font-bold text-gray-700">
+                {toDisplayDate(item.scheduled_date)}
+              </p>
+
+              <p className="text-[15px] font-bold text-gray-700">
                 {toDisplayTime(item.scheduled_time, item.repeat_type)}
               </p>
 
@@ -310,6 +325,16 @@ export default function ScheduleList() {
               >
                 x
               </button>
+            </div>
+
+            <div className="mb-4 rounded-2xl border border-gray-200 bg-gray-50 p-2">
+              <input
+                type="date"
+                value={editDate}
+                min={getTodayString()}
+                onChange={(event) => setEditDate(event.target.value)}
+                className="w-full rounded-xl border border-gray-200 bg-white p-2 text-center text-sm font-bold focus:outline-none"
+              />
             </div>
 
             <div className="mb-4 flex h-[100px] select-none items-center justify-between rounded-2xl border border-gray-100 bg-[#f6f6f6] p-3">
