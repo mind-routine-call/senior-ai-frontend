@@ -1,8 +1,18 @@
 import { useMemo, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { getAccessToken } from "../../utils/authSession";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const resolveImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  if (/^https?:\/\//.test(imageUrl) || imageUrl.startsWith("blob:")) {
+    return imageUrl;
+  }
+  return `${API_BASE_URL}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
+};
 
 export default function MemoryWrite() {
   const navigate = useNavigate();
@@ -31,23 +41,34 @@ export default function MemoryWrite() {
   const [content, setContent] = useState(existingMemory?.content || "");
   const [imageFile, setImageFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(
-    existingMemory?.image_url ? `${API_BASE_URL}${existingMemory.image_url}` : null
+    resolveImageUrl(existingMemory?.image_url)
   );
   const fileInputRef = useRef(null);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      setImageFile(file);
-      setPreviewUrl(URL.createObjectURL(file));
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드할 수 있습니다.");
+      e.target.value = "";
+      return;
     }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
+      e.target.value = "";
+      return;
+    }
+
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
   };
 
   const [isSaving, setIsSaving] = useState(false);
 
   const config = useMemo(() => {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const token = getAccessToken();
     return token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
   }, []);
 
@@ -80,7 +101,6 @@ export default function MemoryWrite() {
         ...config,
         headers: {
           ...config?.headers,
-          "Content-Type": "multipart/form-data",
         },
       };
 
