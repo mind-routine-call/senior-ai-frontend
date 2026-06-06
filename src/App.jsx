@@ -14,6 +14,7 @@ import MemoryWrite from "./pages/Memory/Write";
 import ElderHome from "./pages/Chat/ElderHome";
 import ElderOnboarding from "./pages/Chat/ElderOnboarding";
 import ElderChat from "./pages/Chat/ElderChat";
+import MyPage from "./pages/MyPage/MyPage";
 
 export default function App() {
   return (
@@ -47,6 +48,7 @@ export default function App() {
                   <Route path="/elder-chat" element={<ElderChat />} />
                   <Route path="/chat" element={<ElderChat />} />
                 </Route>
+                <Route path="/mypage" element={<MyPage />} />
               </Route>
             </Routes>
           </BrowserRouter>

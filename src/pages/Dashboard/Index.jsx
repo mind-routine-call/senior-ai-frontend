@@ -184,12 +184,26 @@ export default function Dashboard() {
             mindroutine
           </h1>
         </div>
-        <Link
+
+        <div className="flex items-center gap-2">
+
+          <Link
           className="rounded-full bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-600"
           to={`/notification/${activeElderId}`}
         >
           알림 {uncheckedAlertCount}건
         </Link>
+
+        <Link
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-base shadow-sm border border-gray-100 transition hover:bg-indigo-50 hover:scale-105 active:scale-95"
+            to="/mypage"
+            title="마이페이지 이동"
+          >
+            👤
+          </Link>
+        </div>
+
+        
       </header>
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">

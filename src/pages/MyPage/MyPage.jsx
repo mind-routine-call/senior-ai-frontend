@@ -27,20 +27,17 @@ export default function MyPage() {
           return;
         }
 
-        // 1. 내 프로필 정보 가져오기 (팀원들이 구현한 로그인 토큰 정보 기반)
-        // 토큰 내부 정보를 해석하거나 /auth/me 같은 프로필 조회 API가 있다고 가정하여 연동합니다.
-        // 만약 관련 API가 미완성일 시 예외 처리를 위해 가짜 데이터를 백업 레이어로 둡니다.
+        // 1. 내 프로필 정보 가져오기
         const profileRes = await axios.get(`${API_BASE_URL}/api/v1/auth/me`, {
           headers: { Authorization: `Bearer ${token}` }
         }).catch(() => ({
-          // 🛠️ 팀원들의 /auth/me API가 아직 개발 중일 때를 대비한 무적의 폴백(Fallback) 안전장치
           data: { 
             success: true, 
             result: { 
               name: localStorage.getItem("userName") || "김보호자", 
               role: localStorage.getItem("userRole") || "guardian", 
               
-              // ✨ [핵심 수정] 회원가입할 때 Account.jsx가 저장해둔 진짜 초대코드를 꺼내오고, 
+              // 회원가입할 때 Account.jsx가 저장해둔 진짜 초대코드를 꺼내오고, 
               // 그것마저 없을 때만 디자인 가이드용 가짜 코드를 보여줍니다.
               invite_code: localStorage.getItem("my_invite_code") || "ABCDEF-123456"
             } 
@@ -49,13 +46,30 @@ export default function MyPage() {
 
         setUserData(profileRes.data.result);
 
-        // 2. 보호자 계정일 경우, 연결된 어르신 리스트 조회 (/api/v1/elders/list)
+        // 2. 보호자 계정일 경우, 연결된 어르신 리스트 조회 (대시보드 동기화 핏 적용)
         if (profileRes.data.result.role === "guardian") {
+          const activeElderId = 
+            localStorage.getItem("selectedElderId") || 
+            localStorage.getItem("elder_id") || 
+            "1";
+
+          const myGuardianId = localStorage.getItem("guardianId") || localStorage.getItem("id") || "1";
+
           const eldersRes = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, {
+            params: { 
+              elder_id: activeElderId,
+              guardian_id: myGuardianId 
+            },
             headers: { Authorization: `Bearer ${token}` }
           });
-          if (eldersRes.data.success) {
-            setElderList(eldersRes.data.result);
+            
+          // ✨ [수정 파트] 팀원의 백엔드 규격인 isSuccess를 검사하도록 수정합니다!
+          const hasData = eldersRes.data?.isSuccess || eldersRes.data?.success;
+          
+          if (hasData && eldersRes.data.result) {
+            const resData = eldersRes.data.result;
+            // 배열 타입인지 검사 후 상태 저장
+            setElderList(Array.isArray(resData) ? resData : [resData]);
           }
         }
       } catch (error) {
@@ -106,11 +120,11 @@ export default function MyPage() {
       
       {/* ────────────────── [상단 헤더 타이틀 블록] ────────────────── */}
       <div className="px-4 mb-4">
-        <h1 className="text-sm font-bold text-gray-400">
+        {/*<h1 className="text-sm font-bold text-gray-400">
           {isGuardian ? "마이페이지 - 보호자용" : "마이페이지 - 어르신용"}
-        </h1>
+        </h1>*/}
         <h2 className="text-2xl font-black text-gray-900 mt-1">
-          {isGuardian ? `${myName}보호자님` : `${myName}어르신님`}
+          {isGuardian ? `${myName} 보호자님` : `${myName} 어르신님`}
         </h2>
         <p className="text-xs text-gray-500 mt-0.5">
           {isGuardian ? "보호자계정" : "안녕하세요 😊"}
@@ -130,16 +144,15 @@ export default function MyPage() {
               {elderList.length > 0 ? (
                 elderList.map((elder) => (
                   <div key={elder.elder_id} className="flex flex-col gap-1 text-sm font-bold text-gray-700">
-                    <p className="text-base text-black">{elder.name || "이어르신"}</p>
+                    <p className="text-base text-black">{elder.name || "연결된 어르신 정보가 없습니다."}</p>
                     <p className="text-gray-500 text-xs">최근 접속: 방금 전</p>
                     <p className="text-gray-500 text-xs">인지 상태: {elder.cognitive_note || "안정"}</p>
                   </div>
                 ))
               ) : (
-                <div className="text-sm font-bold text-gray-700">
-                  <p className="text-base text-black">이어르신</p>
-                  <p className="text-gray-500 text-xs mt-1">최근 접속: 00분 전</p>
-                  <p className="text-gray-500 text-xs">인지 상태: 안정</p>
+                <div className="text-sm font-bold text-gray-400 py-2 text-center">
+                  <p>등록된 어르신이 없습니다.</p>
+                  <p className="text-xs text-gray-400 mt-1">대시보드에서 어르신을 먼저 등록해 주세요.</p>
                 </div>
               )}
             </div>
@@ -184,7 +197,7 @@ export default function MyPage() {
             {/* 연결된 보호자 박스 */}
             <div className="bg-[#e0e0e0] p-4 rounded-2xl border border-gray-200">
               <h3 className="font-black text-gray-800 text-base mb-1">연결된 보호자</h3>
-              <p className="text-lg font-black text-gray-900 mt-2">최보호자</p>
+              <p className="text-lg font-black text-gray-900 mt-2">{userData?.guardian_name || "연결된 보호자 없음"}</p>
             </div>
 
             {/* 음성 설정 슬라이더 바 */}

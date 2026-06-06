@@ -185,8 +185,10 @@ export default function ScheduleManager() {
         <p className="mb-2 text-[18px] font-bold text-gray-800">시간 설정</p>
         <div className="flex h-[120px] select-none items-center justify-between rounded-xl bg-[#f6f6f6] p-4">
           <div className="flex flex-1 flex-col items-center">
-            <button type="button" onClick={toggleAmpm} className="p-1 text-xs font-bold text-gray-400">
-              위
+            <button type="button" onClick={toggleAmpm} className="p-1 flex items-center justify-center">
+              <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 4l-10 16h20z" />
+              </svg>
             </button>
             <button
               type="button"
@@ -195,16 +197,20 @@ export default function ScheduleManager() {
             >
               {ampm}
             </button>
-            <button type="button" onClick={toggleAmpm} className="p-1 text-xs font-bold text-gray-400">
-              아래
-            </button>
+            <button type="button" onClick={toggleAmpm} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 20l10-16h-20z" />
+  </svg>
+</button>
           </div>
 
           <span className="pb-1 text-2xl font-black text-gray-400">:</span>
 
           <div className="flex flex-1 flex-col items-center">
-            <button type="button" onClick={increaseHour} className="p-1 text-xs font-bold text-gray-400">
-              위
+            <button type="button" onClick={increaseHour} className="p-1 flex items-center justify-center">
+              <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 4l-10 16h20z" />
+              </svg>
             </button>
             <input
               type="text"
@@ -215,16 +221,20 @@ export default function ScheduleManager() {
               onBlur={handleBlur}
               className="my-0.5 w-full bg-transparent text-center text-[22px] font-black tracking-wide text-gray-800 focus:outline-none"
             />
-            <button type="button" onClick={decreaseHour} className="p-1 text-xs font-bold text-gray-400">
-              아래
-            </button>
+            <button type="button" onClick={decreaseHour} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 20l10-16h-20z" />
+  </svg>
+</button>
           </div>
 
           <span className="pb-1 text-2xl font-black text-gray-400">:</span>
 
           <div className="flex flex-1 flex-col items-center">
-            <button type="button" onClick={increaseMinute} className="p-1 text-xs font-bold text-gray-400">
-              위
+            <button type="button" onClick={increaseMinute} className="p-1 flex items-center justify-center">
+              <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 4l-10 16h20z" />
+              </svg>
             </button>
             <input
               type="text"
@@ -235,9 +245,11 @@ export default function ScheduleManager() {
               onBlur={handleBlur}
               className="my-0.5 w-full bg-transparent text-center text-[22px] font-black tracking-wide text-gray-800 focus:outline-none"
             />
-            <button type="button" onClick={decreaseMinute} className="p-1 text-xs font-bold text-gray-400">
-              아래
-            </button>
+            <button type="button" onClick={decreaseMinute} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 20l10-16h-20z" />
+  </svg>
+</button>
           </div>
         </div>
       </div>

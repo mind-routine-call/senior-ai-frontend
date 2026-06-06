@@ -339,9 +339,11 @@ export default function ScheduleList() {
 
             <div className="mb-4 flex h-[100px] select-none items-center justify-between rounded-2xl border border-gray-100 bg-[#f6f6f6] p-3">
               <div className="flex flex-1 flex-col items-center">
-                <button type="button" onClick={toggleAmpm} className="text-[10px] font-bold text-gray-500">
-                  위
-                </button>
+                <button type="button" onClick={toggleAmpm} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 4l-10 16h20z" />
+  </svg>
+</button>
                 <button
                   type="button"
                   onClick={toggleAmpm}
@@ -349,33 +351,39 @@ export default function ScheduleList() {
                 >
                   {editAmpm}
                 </button>
-                <button type="button" onClick={toggleAmpm} className="text-[10px] font-bold text-gray-500">
-                  아래
-                </button>
+                <button type="button" onClick={toggleAmpm} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 20l10-16h-20z" />
+  </svg>
+</button>
               </div>
               <span className="px-1 text-xl font-black text-gray-400">:</span>
               <div className="flex flex-1 flex-col items-center">
-                <button type="button" onClick={() => adjustHour("up")} className="text-[10px] font-bold text-gray-500">
-                  위
-                </button>
+                <button type="button" onClick={() => adjustHour("up")} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 4l-10 16h20z" />
+  </svg>
+</button>
                 <span className="my-0.5 text-[20px] font-black text-gray-800">{editHour}</span>
-                <button type="button" onClick={() => adjustHour("down")} className="text-[10px] font-bold text-gray-500">
-                  아래
-                </button>
+                <button type="button" onClick={()=>adjustHour("down")} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 20l10-16h-20z" />
+  </svg>
+</button>
               </div>
               <span className="px-1 text-xl font-black text-gray-400">:</span>
               <div className="flex flex-1 flex-col items-center">
-                <button type="button" onClick={() => adjustMinute("up")} className="text-[10px] font-bold text-gray-500">
-                  위
-                </button>
+                <button type="button" onClick={()=> adjustMinute("up")} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 4l-10 16h20z" />
+  </svg>
+</button>
                 <span className="my-0.5 text-[20px] font-black text-gray-800">{editMinute}</span>
-                <button
-                  type="button"
-                  onClick={() => adjustMinute("down")}
-                  className="text-[10px] font-bold text-gray-500"
-                >
-                  아래
-                </button>
+                <button type="button" onClick={()=>adjustMinute("down")} className="p-1 flex items-center justify-center">
+  <svg className="w-3 h-3 text-gray-400 hover:text-gray-700 transition-colors" fill="currentColor" viewBox="0 0 24 24">
+    <path d="M12 20l10-16h-20z" />
+  </svg>
+</button>
               </div>
             </div>
 
