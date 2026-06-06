@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserRound } from "lucide-react";
 import { getAccessToken } from "../../utils/authSession";
 import {
   CartesianGrid,
@@ -68,53 +69,69 @@ export default function Dashboard() {
   const [chatsData, setChatsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [activeElderId, setActiveElderId] = useState(null);
+
   const [eldersList, setEldersList] = useState([]);
+  const [activeElderId, setActiveElderId] = useState(() => {
+    const query = new URLSearchParams(window.location.search);
+    return (
+      routeElderId ||
+      query.get("elder_id") ||
+      localStorage.getItem("selectedElderId") ||
+      localStorage.getItem("elder_id") ||
+      ""
+    );
+  });
 
   useEffect(() => {
-    const query = new URLSearchParams(window.location.search);
-    const fromUrl = routeElderId || query.get("elder_id");
-    const fromStorage =
-      localStorage.getItem("selectedElderId") ||
-      localStorage.getItem("elder_id");
+    const fetchEldersList = async () => {
+      try {
+        const token = getAccessToken();
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
 
-    if (fromUrl || fromStorage) {
-      setActiveElderId(fromUrl || fromStorage);
-    }
+        const res = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, config);
 
-    const token = getAccessToken();
-    const config = token
-      ? { headers: { Authorization: `Bearer ${token}` } }
-      : {};
-
-    axios
-      .get(`${API_BASE_URL}/api/v1/elders/list`, config)
-      .then((res) => {
-        const elders = res.data?.result;
-        if (elders && elders.length > 0) {
+        if (res.data?.isSuccess || res.data?.success) {
+          const elders = res.data.result || [];
           setEldersList(elders);
-          if (!fromUrl && !fromStorage) {
-            const elderId = String(elders[0].elder_id);
-            localStorage.setItem("selectedElderId", elderId);
-            setActiveElderId(elderId);
+
+          if (elders.length === 0) {
+            setErrorMessage("등록된 어르신이 없습니다.");
+            setIsLoading(false);
+            return;
           }
-        } else if (!fromUrl && !fromStorage) {
-          setErrorMessage("등록된 어르신이 없습니다.");
-          setIsLoading(false);
+
+          const hasSelectedElder = elders.some(
+            (elder) => String(elder.elder_id) === String(activeElderId),
+          );
+
+          if (!activeElderId || !hasSelectedElder) {
+            const nextElderId = String(elders[0].elder_id);
+            localStorage.setItem("selectedElderId", nextElderId);
+            localStorage.setItem("elder_id", nextElderId);
+            setActiveElderId(nextElderId);
+
+            if (routeElderId !== nextElderId) {
+              navigate(`/dashboard/${nextElderId}`, { replace: true });
+            }
+          }
         }
-      })
-      .catch(() => {
-        if (!fromUrl && !fromStorage) {
+      } catch (error) {
+        console.error("어르신 목록 불러오기 실패", error);
+        if (!activeElderId) {
           setErrorMessage("어르신 정보를 불러오지 못했습니다.");
           setIsLoading(false);
         }
-      });
-  }, [routeElderId]);
+      }
+    };
+
+    fetchEldersList();
+  }, [activeElderId, navigate, routeElderId]);
 
   const handleElderChange = (e) => {
     const selectedId = e.target.value;
     localStorage.setItem("selectedElderId", selectedId);
     localStorage.setItem("elder_id", selectedId);
+    setActiveElderId(selectedId);
     navigate(`/dashboard/${selectedId}`);
   };
 
@@ -222,16 +239,28 @@ export default function Dashboard() {
       <header className="flex items-center justify-between px-1">
         <div>
           <p className="text-xs font-semibold text-indigo-500">보호자 대시보드</p>
-          <h1 className="mt-1 text-2xl font-extrabold text-gray-900">
-            mindroutine
-          </h1>
+          <h1 className="mt-1 text-2xl font-extrabold text-gray-900">mindroutine</h1>
         </div>
-        <Link
+
+        <div className="flex items-center gap-2">
+
+          <Link
           className="rounded-full bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-600"
           to={`/notification/${activeElderId}`}
         >
           알림 {uncheckedAlertCount}건
         </Link>
+
+        <Link
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-base shadow-sm border border-gray-100 transition hover:bg-indigo-50 hover:scale-105 active:scale-95"
+            to="/mypage"
+            title="마이페이지 이동"
+          >
+            <UserRound size={18} strokeWidth={2.4} />
+          </Link>
+        </div>
+
+        
       </header>
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
@@ -265,6 +294,7 @@ export default function Dashboard() {
                   </option>
                 ))
               ) : (
+                /* 목록이 없으면 기존 이름 표시 */
                 <option value={activeElderId}>{elder.name || "어르신 이름 없음"}</option>
               )}
             </select>
