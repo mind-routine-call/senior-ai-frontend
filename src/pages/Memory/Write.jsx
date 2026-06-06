@@ -27,8 +27,7 @@ export default function MemoryWrite() {
       existingMemory?.elder_id ||
       query.get("elder_id") ||
       localStorage.getItem("selectedElderId") ||
-      localStorage.getItem("elder_id") ||
-      "1"
+      localStorage.getItem("elder_id")
     );
   }, [existingMemory?.elder_id, routeElderId]);
 
@@ -73,10 +72,15 @@ export default function MemoryWrite() {
   }, []);
 
   const moveToList = () => {
-    navigate(`/memory/${activeElderId}`);
+    navigate(activeElderId ? `/memory/${activeElderId}` : "/memory");
   };
 
   const handleSave = async () => {
+    if (!activeElderId) {
+      alert("먼저 관리할 어르신을 선택해주세요.");
+      return;
+    }
+
     if (!title.trim()) {
       alert("추억 제목을 입력해주세요.");
       return;

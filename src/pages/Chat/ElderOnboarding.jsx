@@ -31,7 +31,7 @@ export default function ElderOnboarding() {
   const finishOnboarding = async () => {
     localStorage.setItem('elderOnboardingDone', 'true')
     try {
-      await completeElderOnboarding(1)
+      await completeElderOnboarding()
     } catch {
       // 백엔드가 꺼져 있어도 온보딩 체험 흐름은 계속 진행한다.
     }

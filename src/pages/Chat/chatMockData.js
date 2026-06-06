@@ -1,6 +1,6 @@
 export const fallbackHome = {
   elder: {
-    elder_id: 1,
+    elder_id: null,
     name: '박어르신',
     age: 78,
     gender: 'F',

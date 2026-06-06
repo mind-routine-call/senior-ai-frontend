@@ -6,7 +6,6 @@ import Button from "../../components/Button";
 import backIcon from "../../assets/img/back.svg";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const DEMO_ELDER_ID = "1";
 const DEFAULT_SCENARIO_ID = 2;
 const REPEAT_OPTIONS = ["매일", "매주", "없음"];
 
@@ -22,8 +21,7 @@ const getActiveElderId = (routeElderId, searchParams) =>
   routeElderId ||
   searchParams.get("elder_id") ||
   searchParams.get("elderId") ||
-  getStoredElderId() ||
-  DEMO_ELDER_ID;
+  getStoredElderId();
 
 const isSuccessResponse = (data) => data?.isSuccess === true || data?.success === true;
 const getTodayString = () => new Date().toISOString().slice(0, 10);
@@ -112,6 +110,12 @@ export default function ScheduleManager() {
 
   const handleReservation = async () => {
     const token = getAuthToken();
+
+    if (!activeElderId) {
+      alert("먼저 관리할 어르신을 선택해주세요.");
+      navigate("/dashboard");
+      return;
+    }
 
     if (!token) {
       alert("로그인 정보가 없습니다. 다시 로그인해 주세요.");
@@ -278,7 +282,14 @@ export default function ScheduleManager() {
 
       <button
         type="button"
-        onClick={() => navigate(`/schedule/list/${activeElderId}`)}
+        onClick={() => {
+          if (!activeElderId) {
+            alert("먼저 관리할 어르신을 선택해주세요.");
+            navigate("/dashboard");
+            return;
+          }
+          navigate(`/schedule/list/${activeElderId}`);
+        }}
         className="absolute bottom-24 right-4 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-black text-xs font-black text-white shadow-lg transition-colors hover:bg-gray-800"
       >
         조회

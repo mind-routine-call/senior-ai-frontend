@@ -6,7 +6,6 @@ import Button from "../../components/Button";
 import backIcon from "../../assets/img/back.svg";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const DEMO_ELDER_ID = "1";
 const REPEAT_OPTIONS = ["매일", "매주", "없음"];
 
 const getAuthToken = () =>
@@ -17,7 +16,7 @@ const getStoredElderId = () =>
   localStorage.getItem("elderId") ||
   localStorage.getItem("selectedElderId");
 
-const getActiveElderId = (routeElderId) => routeElderId || getStoredElderId() || DEMO_ELDER_ID;
+const getActiveElderId = (routeElderId) => routeElderId || getStoredElderId();
 
 const isSuccessResponse = (data) => data?.isSuccess === true || data?.success === true;
 const getTodayString = () => new Date().toISOString().slice(0, 10);
@@ -73,6 +72,13 @@ export default function ScheduleList() {
 
   const fetchSchedules = useCallback(async ({ showLoading = true } = {}) => {
     const token = getAuthToken();
+    const activeElderId = getActiveElderId(elderId);
+
+    if (!activeElderId) {
+      setErrorMessage("먼저 관리할 어르신을 선택해주세요.");
+      setLoading(false);
+      return;
+    }
 
     if (!token) {
       setErrorMessage("로그인 정보가 없습니다. 다시 로그인해 주세요.");
@@ -87,7 +93,7 @@ export default function ScheduleList() {
       setErrorMessage("");
 
       const response = await axios.get(`${API_BASE_URL}/api/v1/schedules/list`, {
-        params: { elder_id: getActiveElderId(elderId) },
+        params: { elder_id: activeElderId },
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -110,6 +116,15 @@ export default function ScheduleList() {
 
     const loadInitialSchedules = async () => {
       const token = getAuthToken();
+      const activeElderId = getActiveElderId(elderId);
+
+      if (!activeElderId) {
+        if (!ignore) {
+          setErrorMessage("먼저 관리할 어르신을 선택해주세요.");
+          setLoading(false);
+        }
+        return;
+      }
 
       if (!token) {
         if (!ignore) {
@@ -121,7 +136,7 @@ export default function ScheduleList() {
 
       try {
         const response = await axios.get(`${API_BASE_URL}/api/v1/schedules/list`, {
-          params: { elder_id: getActiveElderId(elderId) },
+          params: { elder_id: activeElderId },
           headers: { Authorization: `Bearer ${token}` },
         });
 

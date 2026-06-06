@@ -29,9 +29,8 @@ export default function MemoryList() {
     return (
       routeElderId ||
       query.get("elder_id") ||
-      localStorage.getItem("selectedElderId") ||
-      localStorage.getItem("elder_id") ||
-      "1"
+        localStorage.getItem("selectedElderId") ||
+        localStorage.getItem("elder_id")
     );
   }, [routeElderId]);
 
@@ -41,6 +40,11 @@ export default function MemoryList() {
       setErrorMessage("");
 
       try {
+        if (!activeElderId) {
+          setErrorMessage("먼저 관리할 어르신을 선택해주세요.");
+          return;
+        }
+
         const token =
           localStorage.getItem("token") || localStorage.getItem("accessToken");
         const config = token
@@ -82,7 +86,13 @@ export default function MemoryList() {
         </div>
         <button
           className="shrink-0 rounded-full bg-indigo-600 px-4 py-2 text-sm font-bold text-white shadow-sm"
-          onClick={() => navigate(`/memory/${activeElderId}/write`)}
+          onClick={() => {
+            if (!activeElderId) {
+              alert("먼저 관리할 어르신을 선택해주세요.");
+              return;
+            }
+            navigate(`/memory/${activeElderId}/write`);
+          }}
           type="button"
         >
           추가

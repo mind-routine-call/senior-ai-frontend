@@ -24,6 +24,26 @@ const formatTime = (value) => {
   return `${period} ${displayHour}:${minuteText}`
 }
 
+const getAge = (birthDate) => {
+  if (!birthDate) return null
+  const birth = new Date(birthDate)
+  if (Number.isNaN(birth.getTime())) return null
+
+  const today = new Date()
+  let age = today.getFullYear() - birth.getFullYear()
+  const monthDiff = today.getMonth() - birth.getMonth()
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+    age -= 1
+  }
+  return age
+}
+
+const getGenderLabel = (gender) => {
+  if (gender === '남' || gender === 'M') return '남성'
+  if (gender === '여' || gender === 'F') return '여성'
+  return '성별 정보 없음'
+}
+
 export default function ElderHome() {
   const navigate = useNavigate()
   const [home, setHome] = useState(fallbackHome)
@@ -33,8 +53,12 @@ export default function ElderHome() {
   useEffect(() => {
     const loadHome = async () => {
       try {
-        const data = await getElderHome(1)
+        const data = await getElderHome()
         setHome(data)
+        if (data?.elder?.elder_id) {
+          localStorage.setItem('elder_id', String(data.elder.elder_id))
+          localStorage.setItem('selectedElderId', String(data.elder.elder_id))
+        }
         const localDone = localStorage.getItem('elderOnboardingDone') === 'true'
         if (!localDone && data?.elder?.onboarding_completed === false) {
           navigate('/elder-onboarding', { replace: true })
@@ -56,8 +80,9 @@ export default function ElderHome() {
   const elderName = home.elder?.name || '어르신'
   const todayText = useMemo(() => formatToday(), [])
   const scheduleTime = formatTime(nextSchedule?.scheduled_time)
-  const elderAge = home.elder?.age ? `${home.elder.age}세` : '나이 정보 없음'
-  const elderGender = home.elder?.gender === 'M' ? '남성' : home.elder?.gender === 'F' ? '여성' : '성별 정보 없음'
+  const elderAgeValue = home.elder?.age || getAge(home.elder?.birth_date)
+  const elderAge = elderAgeValue ? `${elderAgeValue}세` : '나이 정보 없음'
+  const elderGender = getGenderLabel(home.elder?.gender)
 
   const togglePanel = (panelName) => {
     setOpenPanel((current) => (current === panelName ? null : panelName))
