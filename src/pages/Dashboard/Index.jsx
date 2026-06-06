@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   CartesianGrid,
@@ -60,11 +60,15 @@ const getRiskLabel = (riskLevel) => {
 
 export default function Dashboard() {
   const { elderId: routeElderId } = useParams();
+  const navigate = useNavigate();
+
   const [summaryData, setSummaryData] = useState(null);
   const [chartsData, setChartsData] = useState(null);
   const [chatsData, setChatsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [eldersList, setEldersList] = useState([]);
 
   const activeElderId = useMemo(() => {
     const query = new URLSearchParams(window.location.search);
@@ -76,6 +80,30 @@ export default function Dashboard() {
       "1"
     );
   }, [routeElderId]);
+
+  useEffect(() => {
+    const fetchEldersList = async () => {
+      try {
+        const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+
+        const res = await axios.get(`${API_BASE_URL}/api/v1/invite/list`, config);
+
+        if (res.data?.isSuccess || res.data?.success) {
+          setEldersList(res.data.result || []);
+        }
+      } catch (error) {
+        console.error("어르신 목록 불러오기 실패", error);
+      }
+    };
+
+    fetchEldersList();
+  }, []);
+
+  const handleElderChange = (e) => {
+    const selectedId = e.target.value;
+    navigate(`/dashboard/${selectedId}`);
+  };
 
   useEffect(() => {
     const fetchDashboardData = async () => {
@@ -180,9 +208,7 @@ export default function Dashboard() {
       <header className="flex items-center justify-between px-1">
         <div>
           <p className="text-xs font-semibold text-indigo-500">보호자 대시보드</p>
-          <h1 className="mt-1 text-2xl font-extrabold text-gray-900">
-            mindroutine
-          </h1>
+          <h1 className="mt-1 text-2xl font-extrabold text-gray-900">mindroutine</h1>
         </div>
         <Link
           className="rounded-full bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-600"
@@ -211,9 +237,22 @@ export default function Dashboard() {
             </svg>
           </div>
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-extrabold text-gray-900">
-              {elder.name || "어르신 이름 없음"}
-            </h2>
+            <select
+              value={activeElderId || ""}
+              onChange={handleElderChange}
+              className="w-full bg-transparent border-none outline-none font-extrabold text-xl text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors focus:ring-0"
+            >
+              {eldersList.length > 0 ? (
+                eldersList.map((e) => (
+                  <option key={e.elder_id} value={e.elder_id}>
+                    {e.name} 어르신
+                  </option>
+                ))
+              ) : (
+                /* 목록이 없으면 기존 이름 표시 */
+                <option value={activeElderId}>{elder.name || "어르신 이름 없음"}</option>
+              )}
+            </select>
             <p className="mt-1 text-sm font-medium text-gray-500">
               {getGenderLabel(elder.gender)} | {elder.age || "-"}세
             </p>
