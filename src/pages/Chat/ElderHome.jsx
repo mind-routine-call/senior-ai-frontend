@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { CalendarClock, ChevronRight, Clock, PhoneCall, UserRound, X } from 'lucide-react'
+import { CalendarClock, ChevronRight, Clock, PhoneCall, UserRound, X, Settings } from 'lucide-react'
 import { getElderHome } from '../../api/elderChat'
 import { fallbackHome } from './chatMockData'
 import ChatFace from './ChatFace'
@@ -108,6 +108,16 @@ export default function ElderHome() {
         >
           <UserRound size={24} strokeWidth={2.3} />
           내 정보 보기
+          <ChevronRight size={24} strokeWidth={2.3} />
+        </button>
+
+        <button
+          className="secondary-action"
+          type="button"
+          onClick={() => navigate('/mypage')}
+        >
+          <Settings size={24} strokeWidth={2.3} />
+          마이페이지
           <ChevronRight size={24} strokeWidth={2.3} />
         </button>
       </div>

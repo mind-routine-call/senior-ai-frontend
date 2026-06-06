@@ -105,6 +105,12 @@ export default function Account({ type = "guardian" }) {
         }
         if (type === 'guardian') {
             const res = await guardianSignup(data)
+
+            if (res.data?.success && res.data?.result?.invite_code) {
+                localStorage.setItem("my_invite_code", res.data.result.invite_code);
+                console.log('초대코드 로컬스토리지 저장 성공:', res.data.result.invite_code);
+            }
+
             console.log('초대코드:', res.data.result.invite_code)
         } else {
             await elderSignup({ ...data, invite_code: form.inviteCode })
