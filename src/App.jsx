@@ -48,7 +48,9 @@ export default function App() {
                   <Route path="/elder-chat" element={<ElderChat />} />
                   <Route path="/chat" element={<ElderChat />} />
                 </Route>
-                <Route path="/mypage" element={<MyPage />} />
+                <Route element={<RoleGuard allowedRoles={["guardian", "elder"]} />}>
+                  <Route path="/mypage" element={<MyPage />} />
+                </Route>
               </Route>
             </Routes>
           </BrowserRouter>

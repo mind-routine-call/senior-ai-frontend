@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { UserRound } from "lucide-react";
 import { getAccessToken } from "../../utils/authSession";
 import {
   CartesianGrid,
@@ -227,7 +228,7 @@ export default function Dashboard() {
             to="/mypage"
             title="마이페이지 이동"
           >
-            👤
+            <UserRound size={18} strokeWidth={2.4} />
           </Link>
         </div>
 
