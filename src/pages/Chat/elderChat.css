@@ -564,6 +564,12 @@
   background: var(--ink);
 }
 
+.mic-action:disabled {
+  cursor: wait;
+  opacity: 0.72;
+  box-shadow: none;
+}
+
 .support-note {
   min-height: 1.3rem;
   color: var(--muted);

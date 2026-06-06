@@ -40,49 +40,59 @@ export default function ElderChat() {
   const turnOrderRef = useRef(1)
   const [callId, setCallId] = useState(null)
   const [turnIndex, setTurnIndex] = useState(0)
-  const [messages, setMessages] = useState([
-    createMessage('ai', starterQuestions[0], { kind: 'question' }),
-  ])
+  const [currentQuestion, setCurrentQuestion] = useState(starterQuestions[0])
+  const [messages, setMessages] = useState([])
   const [mode, setMode] = useState('idle')
   const [liveText, setLiveText] = useState('')
   const [errorMessage, setErrorMessage] = useState('')
   const [ended, setEnded] = useState(false)
 
-  const currentQuestion = starterQuestions[turnIndex] || starterQuestions[starterQuestions.length - 1]
   const speechSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
 
   useEffect(() => {
+    let isMounted = true
+
     const start = async () => {
+      let firstQuestion = starterQuestions[0]
+
       try {
         const session = await startChatSession({ elderId: 1, scenarioId: 1 })
+        if (!isMounted) return
         setCallId(session?.call_id)
+        firstQuestion = session?.initial_question || firstQuestion
       } catch {
+        if (!isMounted) return
         setCallId(null)
       }
+
+      setCurrentQuestion(firstQuestion)
+      setMessages([createMessage('ai', firstQuestion, { kind: 'question' })])
+      speakText(firstQuestion)
     }
+
     start()
-    speakText(starterQuestions[0])
 
     return () => {
+      isMounted = false
       recognitionRef.current?.abort?.()
       stopSpeaking()
     }
   }, [])
 
-  const appendAiMessage = (text) => {
-    setMessages((prev) => [...prev, createMessage('ai', text, { kind: 'question' })])
+  const appendAiMessage = (text, kind = 'reply') => {
+    setCurrentQuestion(text)
+    setMessages((prev) => [...prev, createMessage('ai', text, { kind })])
     speakText(text)
   }
 
-  const persistTurn = async ({ answer, reply, confidence, responseDelayMs }) => {
-    if (!callId) return
+  const persistTurn = async ({ answer, confidence, responseDelayMs }) => {
+    if (!callId) return null
 
     try {
       const turn = await saveChatTurn(callId, {
         turn_order: turnOrderRef.current,
         ai_question: currentQuestion,
         user_answer_text: answer,
-        ai_response_text: reply,
         stt_confidence: confidence,
         response_delay_ms: responseDelayMs,
       })
@@ -95,8 +105,11 @@ export default function ElderChat() {
           responseDelayMs,
         }))
       }
+
+      return turn
     } catch {
       // 시연 중 백엔드 연결이 불안정해도 대화 UI는 끊지 않는다.
+      return null
     }
   }
 
@@ -111,33 +124,22 @@ export default function ElderChat() {
     const responseDelayMs = listenStartedAtRef.current
       ? Date.now() - listenStartedAtRef.current
       : 0
-    const nextIndex = Math.min(turnIndex + 1, starterQuestions.length - 1)
-    const reply = turnIndex >= starterQuestions.length - 1
-      ? '오늘 이야기 잘 들었어요. 이제 편히 쉬셔도 됩니다.'
-      : calmReplies[turnIndex % calmReplies.length]
-    const nextQuestion = starterQuestions[nextIndex]
+    const fallbackReply = calmReplies[turnIndex % calmReplies.length]
 
     setMessages((prev) => [
       ...prev,
       createMessage('elder', trimmed, {
         analysis: analyzeRecognizedText({ text: trimmed, confidence, responseDelayMs }),
       }),
-      createMessage('ai', reply, { kind: 'reply' }),
     ])
-
-    await persistTurn({ answer: trimmed, reply, confidence, responseDelayMs })
     setLiveText('')
+    setMode('thinking')
 
-    if (turnIndex >= starterQuestions.length - 1) {
-      setMode('done')
-      setEnded(true)
-      speakText(reply)
-      return
-    }
-
-    setTurnIndex(nextIndex)
+    const turn = await persistTurn({ answer: trimmed, confidence, responseDelayMs })
+    const reply = turn?.ai_response_text || fallbackReply
+    setTurnIndex((prev) => prev + 1)
     setMode('idle')
-    window.setTimeout(() => appendAiMessage(nextQuestion), 900)
+    window.setTimeout(() => appendAiMessage(reply), 500)
   }
 
   const startListening = () => {
@@ -252,7 +254,11 @@ export default function ElderChat() {
             <h2>AI 친구</h2>
             <p>
               <span className="live-dot" />
-              {mode === 'listening' ? '말씀을 듣고 있어요' : '이야기 중이에요'}
+              {mode === 'listening'
+                ? '말씀을 듣고 있어요'
+                : mode === 'thinking'
+                  ? '답변을 준비하고 있어요'
+                  : '이야기 중이에요'}
             </p>
           </div>
         </div>
@@ -261,7 +267,7 @@ export default function ElderChat() {
       <section className="chat-conversation">
         <div className="status-pill">
           <Headphones size={18} strokeWidth={2.4} />
-          {mode === 'listening' ? '듣는 중' : '대기 중'}
+          {mode === 'listening' ? '듣는 중' : mode === 'thinking' ? '생각 중' : '대기 중'}
         </div>
 
         <div className="message-list" aria-live="polite">
@@ -306,6 +312,7 @@ export default function ElderChat() {
           type="button"
           onClick={mode === 'listening' ? stopListening : startListening}
           aria-pressed={mode === 'listening'}
+          disabled={mode === 'thinking'}
         >
           {mode === 'listening' ? <Send size={30} strokeWidth={2.4} /> : <Mic size={34} strokeWidth={2.4} />}
           {mode === 'listening' ? '말하기 끝내기' : '말하기 시작'}
