@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { UserRound } from "lucide-react";
@@ -71,17 +71,16 @@ export default function Dashboard() {
   const [errorMessage, setErrorMessage] = useState("");
 
   const [eldersList, setEldersList] = useState([]);
-
-  const activeElderId = useMemo(() => {
+  const [activeElderId, setActiveElderId] = useState(() => {
     const query = new URLSearchParams(window.location.search);
     return (
       routeElderId ||
       query.get("elder_id") ||
       localStorage.getItem("selectedElderId") ||
       localStorage.getItem("elder_id") ||
-      "1"
+      ""
     );
-  }, [routeElderId]);
+  });
 
   useEffect(() => {
     const fetchEldersList = async () => {
@@ -92,24 +91,53 @@ export default function Dashboard() {
         const res = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, config);
 
         if (res.data?.isSuccess || res.data?.success) {
-          setEldersList(res.data.result || []);
+          const elders = res.data.result || [];
+          setEldersList(elders);
+
+          if (elders.length === 0) {
+            setErrorMessage("등록된 어르신이 없습니다.");
+            setIsLoading(false);
+            return;
+          }
+
+          const hasSelectedElder = elders.some(
+            (elder) => String(elder.elder_id) === String(activeElderId),
+          );
+
+          if (!activeElderId || !hasSelectedElder) {
+            const nextElderId = String(elders[0].elder_id);
+            localStorage.setItem("selectedElderId", nextElderId);
+            localStorage.setItem("elder_id", nextElderId);
+            setActiveElderId(nextElderId);
+
+            if (routeElderId !== nextElderId) {
+              navigate(`/dashboard/${nextElderId}`, { replace: true });
+            }
+          }
         }
       } catch (error) {
         console.error("어르신 목록 불러오기 실패", error);
+        if (!activeElderId) {
+          setErrorMessage("어르신 정보를 불러오지 못했습니다.");
+          setIsLoading(false);
+        }
       }
     };
 
     fetchEldersList();
-  }, []);
+  }, [activeElderId, navigate, routeElderId]);
 
   const handleElderChange = (e) => {
     const selectedId = e.target.value;
     localStorage.setItem("selectedElderId", selectedId);
     localStorage.setItem("elder_id", selectedId);
+    setActiveElderId(selectedId);
     navigate(`/dashboard/${selectedId}`);
   };
 
   useEffect(() => {
+    if (!activeElderId) return;
+
     const fetchDashboardData = async () => {
       setIsLoading(true);
       setErrorMessage("");
