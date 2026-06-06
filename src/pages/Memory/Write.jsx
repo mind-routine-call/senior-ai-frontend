@@ -1,8 +1,18 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useRef } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { getAccessToken } from "../../utils/authSession";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+
+const resolveImageUrl = (imageUrl) => {
+  if (!imageUrl) return null;
+  if (/^https?:\/\//.test(imageUrl) || imageUrl.startsWith("blob:")) {
+    return imageUrl;
+  }
+  return `${API_BASE_URL}${imageUrl.startsWith("/") ? "" : "/"}${imageUrl}`;
+};
 
 export default function MemoryWrite() {
   const navigate = useNavigate();
@@ -29,12 +39,36 @@ export default function MemoryWrite() {
       : "",
   );
   const [content, setContent] = useState(existingMemory?.content || "");
-  const [imageUrl, setImageUrl] = useState(existingMemory?.image_url || "");
+  const [imageFile, setImageFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(
+    resolveImageUrl(existingMemory?.image_url)
+  );
+  const fileInputRef = useRef(null);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드할 수 있습니다.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > MAX_IMAGE_SIZE) {
+      alert("이미지는 5MB 이하만 업로드할 수 있습니다.");
+      e.target.value = "";
+      return;
+    }
+
+    setImageFile(file);
+    setPreviewUrl(URL.createObjectURL(file));
+  };
+
   const [isSaving, setIsSaving] = useState(false);
 
   const config = useMemo(() => {
-    const token =
-      localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const token = getAccessToken();
     return token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
   }, []);
 
@@ -56,40 +90,46 @@ export default function MemoryWrite() {
     setIsSaving(true);
 
     try {
-      const payload = {
-        title: title.trim(),
-        memory_date: memoryDate,
-        content: content.trim() || null,
-        image_url: imageUrl.trim() || null,
+      const formData = new FormData();
+      formData.append("title", title.trim());
+      formData.append("memory_date", memoryDate);
+      if (content.trim()) formData.append("content", content.trim());
+      
+      if (imageFile) formData.append("image", imageFile); 
+
+      const requestConfig = {
+        ...config,
+        headers: {
+          ...config?.headers,
+        },
       };
 
       if (existingMemory) {
         const response = await axios.patch(
           `${API_BASE_URL}/api/v1/memories/update/${existingMemory.memory_id}`,
-          payload,
-          config,
+          formData,
+          requestConfig
         );
 
         if (!(response.data?.isSuccess || response.data?.success)) {
           throw new Error("등록메모리 수정 실패");
         }
 
-        alert("추억이 수정되었습니다.");
+        alert("수정되었습니다.");
       } else {
+        formData.append("elder_id", Number(activeElderId));
+
         const response = await axios.post(
           `${API_BASE_URL}/api/v1/memories/upload`,
-          {
-            ...payload,
-            elder_id: Number(activeElderId),
-          },
-          config,
+          formData,
+          requestConfig
         );
 
         if (!(response.data?.isSuccess || response.data?.success)) {
           throw new Error("등록메모리 등록 실패");
         }
 
-        alert("추억이 등록되었습니다.");
+        alert("등록되었습니다.");
       }
 
       moveToList();
@@ -142,7 +182,7 @@ export default function MemoryWrite() {
           어르신과 AI가 자연스럽게 이야기할 수 있는 기억을 적어주세요.
         </p>
       </header>
-
+      
       <form className="flex flex-1 flex-col gap-5" onSubmit={(e) => e.preventDefault()}>
         <label className="flex flex-col gap-2">
           <span className="text-sm font-bold text-gray-700">추억 제목</span>
@@ -175,16 +215,39 @@ export default function MemoryWrite() {
           />
         </label>
 
-        <label className="flex flex-col gap-2">
-          <span className="text-sm font-bold text-gray-700">이미지 URL</span>
-          <input
-            className="w-full rounded-xl bg-gray-100 p-4 text-base font-medium outline-none focus:ring-2 focus:ring-indigo-200"
-            onChange={(e) => setImageUrl(e.target.value)}
-            placeholder="이미지 주소가 있으면 입력해주세요."
-            type="url"
-            value={imageUrl}
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-bold text-gray-700">추억 사진 업로드</span>
+          
+          <input 
+            type="file" 
+            accept="image/*" 
+            ref={fileInputRef} 
+            onChange={handleImageChange} 
+            className="hidden" 
           />
-        </label>
+
+          {previewUrl ? (
+            <div 
+              className="relative w-full h-48 rounded-xl overflow-hidden cursor-pointer shadow-sm border border-gray-200"
+              onClick={() => fileInputRef.current.click()}
+            >
+              <img src={previewUrl} alt="Preview" className="w-full h-full object-cover" />
+              <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                <span className="text-white text-sm font-bold">사진 변경하기</span>
+              </div>
+            </div>
+          ) : (
+            <div 
+              className="w-full rounded-xl bg-gray-100 p-4 flex flex-col items-center justify-center text-gray-500 text-sm h-32 cursor-pointer hover:bg-gray-200 transition-colors border border-dashed border-gray-300"
+              onClick={() => fileInputRef.current.click()}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-8 h-8 mb-2 text-gray-400">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m2.25 15.75 5.159-5.159a2.25 2.25 0 0 1 3.182 0l5.159 5.159m-1.5-1.5 1.409-1.409a2.25 2.25 0 0 1 3.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 0 0 1.5-1.5V6a1.5 1.5 0 0 0-1.5-1.5H3.75A1.5 1.5 0 0 0 2.25 6v12a1.5 1.5 0 0 0 1.5 1.5Zm10.5-11.25h.008v.008h-.008V8.25Zm.375 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+              </svg>
+              <span className="font-semibold">클릭하여 사진 선택</span>
+            </div>
+          )}
+        </div>
 
         <div className="mt-auto grid grid-cols-2 gap-3 pt-3">
           <button
@@ -201,10 +264,11 @@ export default function MemoryWrite() {
             onClick={handleSave}
             type="button"
           >
-            {isSaving ? "저장 중" : existingMemory ? "수정" : "저장"}
+            {isSaving ? "처리 중..." : existingMemory ? "수정" : "저장"}
           </button>
         </div>
       </form>
     </div>
   );
+  
 }
