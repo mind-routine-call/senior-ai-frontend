@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { getAccessToken } from "../../utils/authSession";
 import {
   CartesianGrid,
   Line,
@@ -84,10 +85,10 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchEldersList = async () => {
       try {
-        const token = localStorage.getItem("token") || localStorage.getItem("accessToken");
+        const token = getAccessToken();
         const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
 
-        const res = await axios.get(`${API_BASE_URL}/api/v1/invite/list`, config);
+        const res = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, config);
 
         if (res.data?.isSuccess || res.data?.success) {
           setEldersList(res.data.result || []);
@@ -102,6 +103,8 @@ export default function Dashboard() {
 
   const handleElderChange = (e) => {
     const selectedId = e.target.value;
+    localStorage.setItem("selectedElderId", selectedId);
+    localStorage.setItem("elder_id", selectedId);
     navigate(`/dashboard/${selectedId}`);
   };
 
@@ -111,8 +114,7 @@ export default function Dashboard() {
       setErrorMessage("");
 
       try {
-        const token =
-          localStorage.getItem("token") || localStorage.getItem("accessToken");
+        const token = getAccessToken();
         const config = token
           ? { headers: { Authorization: `Bearer ${token}` } }
           : undefined;
