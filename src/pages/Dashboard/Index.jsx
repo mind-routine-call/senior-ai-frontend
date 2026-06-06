@@ -1,16 +1,78 @@
+<<<<<<< HEAD
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+=======
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import axios from "axios";
+import {
+  CartesianGrid,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
+>>>>>>> 8323516 (fix: 대시보드 elder_id 하드코딩 제거 및 동적 조회로 수정)
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
 export default function Dashboard() {
   const [summaryData, setSummaryData] = useState(null);
+<<<<<<< HEAD
   const [chatsData, setChatsData] = useState(null);
 
   // 임시 어르신 ID 
   const elderId = 1; 
+=======
+  const [chartsData, setChartsData] = useState(null);
+  const [chatsData, setChatsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [activeElderId, setActiveElderId] = useState(null);
 
   useEffect(() => {
+    const query = new URLSearchParams(window.location.search);
+    const fromUrl = routeElderId || query.get("elder_id");
+    const fromStorage =
+      localStorage.getItem("selectedElderId") ||
+      localStorage.getItem("elder_id");
+
+    if (fromUrl || fromStorage) {
+      setActiveElderId(fromUrl || fromStorage);
+      return;
+    }
+
+    const token =
+      localStorage.getItem("token") || localStorage.getItem("accessToken");
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+
+    axios
+      .get(`${API_BASE_URL}/api/v1/elders/list`, config)
+      .then((res) => {
+        const elders = res.data?.result;
+        if (elders && elders.length > 0) {
+          const elderId = String(elders[0].elder_id);
+          localStorage.setItem("selectedElderId", elderId);
+          setActiveElderId(elderId);
+        } else {
+          setErrorMessage("등록된 어르신이 없습니다.");
+          setIsLoading(false);
+        }
+      })
+      .catch(() => {
+        setErrorMessage("어르신 정보를 불러오지 못했습니다.");
+        setIsLoading(false);
+      });
+  }, [routeElderId]);
+>>>>>>> 8323516 (fix: 대시보드 elder_id 하드코딩 제거 및 동적 조회로 수정)
+
+  useEffect(() => {
+    if (!activeElderId) return;
+
     const fetchDashboardData = async () => {
       try {
         const [summaryRes, , chatsRes] = await Promise.all([
