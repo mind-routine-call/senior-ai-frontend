@@ -10,6 +10,7 @@ import {
   NotebookTabs,
   UserRound,
   Volume2,
+  X,
 } from "lucide-react";
 
 import { clearAuthSession, getAccessToken, getStoredRole } from "../../utils/authSession";
@@ -17,6 +18,10 @@ import { getElderHome } from "../../api/elderChat";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const ELDER_SETTINGS_STORAGE_KEY = "elderAudioDisplaySettings";
+const GENDER_OPTIONS = [
+  { label: "남성", value: "남" },
+  { label: "여성", value: "여" },
+];
 
 const unwrapResult = (response) => response?.data?.result ?? response?.data ?? null;
 
@@ -48,6 +53,11 @@ const readSettingNumber = (settings, key, defaultValue) => {
   return Number.isFinite(value) ? value : defaultValue;
 };
 
+const toDateInputValue = (value) => {
+  if (!value) return "";
+  return String(value).slice(0, 10);
+};
+
 export default function MyPage() {
   const navigate = useNavigate();
   const storedRole = getStoredRole();
@@ -60,6 +70,15 @@ export default function MyPage() {
   const [speechSpeed, setSpeechSpeed] = useState(() => readSettingNumber(savedSettings, "speechSpeed", 50));
   const [volume, setVolume] = useState(() => readSettingNumber(savedSettings, "volume", 70));
   const [fontSize, setFontSize] = useState(() => savedSettings.fontSize || "아주 크게");
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileForm, setProfileForm] = useState({
+    name: "",
+    gender: "",
+    birth_date: "",
+    phone: "",
+    cognitive_note: "",
+  });
 
   const role = userData?.role || storedRole || "guardian";
   const isGuardian = role === "guardian";
@@ -216,6 +235,66 @@ export default function MyPage() {
     navigate(activeElderId ? `/memory/${activeElderId}` : "/memory");
   };
 
+  const openProfileEditor = () => {
+    setProfileForm({
+      name: userData?.name || "",
+      gender: userData?.gender || "",
+      birth_date: toDateInputValue(userData?.birth_date),
+      phone: userData?.phone || "",
+      cognitive_note: userData?.cognitive_note || "",
+    });
+    setIsProfileModalOpen(true);
+  };
+
+  const updateProfileForm = (key, value) => {
+    setProfileForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleProfileSubmit = async () => {
+    if (!profileForm.name.trim()) {
+      alert("이름을 입력해주세요.");
+      return;
+    }
+
+    try {
+      setProfileSaving(true);
+
+      const payload = {
+        name: profileForm.name.trim(),
+        gender: profileForm.gender || null,
+        birth_date: profileForm.birth_date || null,
+        phone: profileForm.phone.trim() || null,
+      };
+
+      if (!isGuardian) {
+        payload.cognitive_note = profileForm.cognitive_note.trim() || null;
+      }
+
+      const response = await axios.patch(
+        `${API_BASE_URL}/api/v1/account/modify`,
+        payload,
+        buildAuthConfig(),
+      );
+
+      if (!(response.data?.isSuccess || response.data?.success)) {
+        throw new Error(response.data?.message || "개인정보 변경 실패");
+      }
+
+      setUserData((prev) => ({
+        ...prev,
+        ...payload,
+      }));
+      localStorage.setItem("userName", payload.name);
+      setIsProfileModalOpen(false);
+      alert("개인정보가 변경되었습니다.");
+    } catch (error) {
+      console.error("개인정보 변경 실패", error);
+      alert(error.response?.data?.message || "개인정보 변경 중 오류가 발생했습니다.");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex h-full items-center justify-center bg-[#f6f8fb] text-lg font-bold text-gray-500">
@@ -360,12 +439,137 @@ export default function MyPage() {
           <MenuButton
             icon={<UserRound size={25} />}
             label="개인정보 변경"
-            onClick={() => alert("개인정보 변경 화면은 준비 중입니다.")}
+            onClick={openProfileEditor}
           />
           <MenuButton icon={<LogOut size={25} />} label="로그아웃" onClick={handleLogout} danger />
         </section>
       </main>
+
+      {isProfileModalOpen && (
+        <ProfileEditModal
+          form={profileForm}
+          isGuardian={isGuardian}
+          onChange={updateProfileForm}
+          onClose={() => setIsProfileModalOpen(false)}
+          onSubmit={handleProfileSubmit}
+          saving={profileSaving}
+        />
+      )}
     </div>
+  );
+}
+
+function ProfileEditModal({ form, isGuardian, onChange, onClose, onSubmit, saving }) {
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 px-5">
+      <div className="max-h-[760px] w-full max-w-sm overflow-y-auto rounded-[28px] bg-white p-5 shadow-2xl">
+        <div className="mb-5 flex items-start justify-between gap-3">
+          <div>
+            <p className="text-sm font-bold text-[#4d6fb6]">
+              {isGuardian ? "보호자 정보" : "어르신 정보"}
+            </p>
+            <h2 className="mt-1 text-[22px] font-black text-gray-900">개인정보 변경</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gray-100 text-gray-700"
+            aria-label="닫기"
+          >
+            <X size={21} strokeWidth={2.5} />
+          </button>
+        </div>
+
+        <div className="flex flex-col gap-4">
+          <ProfileField
+            label="이름"
+            value={form.name}
+            onChange={(value) => onChange("name", value)}
+            placeholder="이름을 입력해주세요"
+          />
+
+          <label className="flex flex-col gap-2">
+            <span className="text-sm font-black text-gray-800">성별</span>
+            <div className="grid grid-cols-2 gap-2 rounded-2xl bg-gray-100 p-1">
+              {GENDER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => onChange("gender", option.value)}
+                  className={`rounded-xl py-3 text-base font-black transition ${
+                    form.gender === option.value
+                      ? "bg-white text-[#2f66c9] shadow-sm"
+                      : "text-gray-500"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </label>
+
+          <ProfileField
+            label="생년월일"
+            type="date"
+            value={form.birth_date}
+            onChange={(value) => onChange("birth_date", value)}
+          />
+
+          <ProfileField
+            label="전화번호"
+            value={form.phone}
+            onChange={(value) => onChange("phone", value)}
+            placeholder="01012345678"
+          />
+
+          {!isGuardian && (
+            <label className="flex flex-col gap-2">
+              <span className="text-sm font-black text-gray-800">인지 상태 메모</span>
+              <textarea
+                value={form.cognitive_note}
+                onChange={(event) => onChange("cognitive_note", event.target.value)}
+                placeholder="대화 시 참고할 특이사항을 적어주세요"
+                className="h-28 resize-none rounded-2xl bg-gray-100 px-4 py-3 text-base font-semibold leading-6 text-gray-900 outline-none focus:ring-2 focus:ring-[#bcd4ff]"
+              />
+            </label>
+          )}
+        </div>
+
+        <div className="mt-6 grid grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={onClose}
+            disabled={saving}
+            className="rounded-2xl bg-gray-100 py-4 text-base font-black text-gray-700 disabled:opacity-50"
+          >
+            취소
+          </button>
+          <button
+            type="button"
+            onClick={onSubmit}
+            disabled={saving}
+            className="rounded-2xl bg-[#2f66c9] py-4 text-base font-black text-white shadow-sm disabled:opacity-50"
+          >
+            {saving ? "저장 중" : "저장"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ProfileField({ label, value, onChange, placeholder = "", type = "text" }) {
+  return (
+    <label className="flex flex-col gap-2">
+      <span className="text-sm font-black text-gray-800">{label}</span>
+      <input
+        type={type}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        className="rounded-2xl bg-gray-100 px-4 py-4 text-base font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-[#bcd4ff]"
+      />
+    </label>
   );
 }
 

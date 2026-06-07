@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
@@ -6,7 +6,6 @@ import Button from "../../components/Button";
 import backIcon from "../../assets/img/back.svg";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const DEFAULT_SCENARIO_ID = 2;
 const REPEAT_OPTIONS = ["매일", "매주", "없음"];
 
 const getAuthToken = () =>
@@ -51,9 +50,50 @@ export default function ScheduleManager() {
   const [hour, setHour] = useState("10");
   const [minute, setMinute] = useState("00");
   const [repeatType, setRepeatType] = useState("매일");
+  const [scenarios, setScenarios] = useState([]);
+  const [selectedScenarioId, setSelectedScenarioId] = useState("");
+  const [scenarioError, setScenarioError] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [modalMessage, setModalMessage] = useState("");
   const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchScenarios = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/v1/scenarios/list`);
+
+        if (ignore) return;
+
+        if (isSuccessResponse(response.data)) {
+          const activeScenarios = (response.data.result || []).filter(
+            (scenario) => scenario.is_active !== false && scenario.is_active !== 0,
+          );
+
+          setScenarios(activeScenarios);
+          setScenarioError("");
+
+          if (activeScenarios.length > 0) {
+            setSelectedScenarioId(String(activeScenarios[0].scenario_id));
+          }
+        } else {
+          setScenarioError(response.data?.message || "대화 시나리오를 불러오지 못했습니다.");
+        }
+      } catch (error) {
+        if (!ignore) {
+          console.error(error);
+          setScenarioError("대화 시나리오를 불러오지 못했습니다.");
+        }
+      }
+    };
+
+    fetchScenarios();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const toggleAmpm = () => {
     setAmpm((prev) => (prev === "오전" ? "오후" : "오전"));
@@ -123,6 +163,11 @@ export default function ScheduleManager() {
       return;
     }
 
+    if (!selectedScenarioId) {
+      alert("대화 시나리오를 선택해주세요.");
+      return;
+    }
+
     try {
       setSubmitting(true);
 
@@ -131,7 +176,7 @@ export default function ScheduleManager() {
         `${API_BASE_URL}/api/v1/schedules/create`,
         {
           elder_id: Number(activeElderId),
-          scenario_id: DEFAULT_SCENARIO_ID,
+          scenario_id: Number(selectedScenarioId),
           scheduled_date: selectedDate,
           scheduled_time,
           repeat_type: repeatType,
@@ -183,6 +228,39 @@ export default function ScheduleManager() {
           onChange={(event) => setSelectedDate(event.target.value)}
           className="h-15 w-full rounded-xl bg-[#f6f6f6] px-4 text-center font-bold text-gray-800 focus:border focus:border-blue-400 focus:outline-none"
         />
+      </div>
+
+      <div className="mb-6 flex flex-col gap-2">
+        <label htmlFor="schedule-scenario" className="text-[18px] font-bold text-gray-800">
+          대화 주제
+        </label>
+        {scenarioError ? (
+          <div className="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold leading-relaxed text-red-600">
+            {scenarioError}
+          </div>
+        ) : (
+          <select
+            id="schedule-scenario"
+            value={selectedScenarioId}
+            onChange={(event) => setSelectedScenarioId(event.target.value)}
+            className="h-15 w-full rounded-xl bg-[#f6f6f6] px-4 text-base font-bold text-gray-800 focus:border focus:border-blue-400 focus:outline-none"
+          >
+            {scenarios.length === 0 ? (
+              <option value="">등록된 시나리오 없음</option>
+            ) : (
+              scenarios.map((scenario) => (
+                <option key={scenario.scenario_id} value={scenario.scenario_id}>
+                  {scenario.title} {scenario.category ? `- ${scenario.category}` : ""}
+                </option>
+              ))
+            )}
+          </select>
+        )}
+        {selectedScenarioId && (
+          <p className="rounded-xl bg-[#eef5ff] px-4 py-3 text-sm font-bold leading-relaxed text-[#2f66c9]">
+            선택한 주제로 AI 친구가 먼저 대화를 시작합니다.
+          </p>
+        )}
       </div>
 
       <div className="mb-6">
