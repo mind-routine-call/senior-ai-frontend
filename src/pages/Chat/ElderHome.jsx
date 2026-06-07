@@ -88,6 +88,21 @@ export default function ElderHome() {
     setOpenPanel((current) => (current === panelName ? null : panelName))
   }
 
+  const handleStartChat = () => {
+    navigate('/elder-chat', {
+      state: {
+        nextSchedule: nextSchedule
+          ? {
+              scheduleId: nextSchedule.schedule_id,
+              scenarioId: nextSchedule.scenario_id,
+              scenarioTitle: nextSchedule.scenario_title,
+              scheduledTime: nextSchedule.scheduled_time,
+            }
+          : null,
+      },
+    })
+  }
+
   return (
     <main className="elder-shell elder-shell--home">
       <header className="home-titlebar">
@@ -111,7 +126,7 @@ export default function ElderHome() {
       </section>
 
       <div className="home-actions">
-        <button className="primary-action" type="button" onClick={() => navigate('/elder-chat')}>
+        <button className="primary-action" type="button" onClick={handleStartChat}>
           <PhoneCall size={27} strokeWidth={2.4} />
           지금 대화하기
         </button>
