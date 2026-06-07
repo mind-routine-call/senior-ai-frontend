@@ -59,6 +59,7 @@ export default function ScheduleList() {
   const navigate = useNavigate();
   const { elderId } = useParams();
   const [schedules, setSchedules] = useState([]);
+  const [scenarios, setScenarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -69,6 +70,7 @@ export default function ScheduleList() {
   const [editHour, setEditHour] = useState("10");
   const [editMinute, setEditMinute] = useState("00");
   const [editRepeat, setEditRepeat] = useState("매일");
+  const [editScenarioId, setEditScenarioId] = useState("");
 
   const fetchSchedules = useCallback(async ({ showLoading = true } = {}) => {
     const token = getAuthToken();
@@ -167,6 +169,36 @@ export default function ScheduleList() {
     };
   }, [elderId]);
 
+  useEffect(() => {
+    let ignore = false;
+
+    const fetchScenarios = async () => {
+      try {
+        const response = await axios.get(`${API_BASE_URL}/api/v1/scenarios/list`);
+
+        if (ignore) return;
+
+        if (isSuccessResponse(response.data)) {
+          setScenarios(
+            (response.data.result || []).filter(
+              (scenario) => scenario.is_active !== false && scenario.is_active !== 0,
+            ),
+          );
+        }
+      } catch (error) {
+        if (!ignore) {
+          console.error("시나리오 목록 조회 실패", error);
+        }
+      }
+    };
+
+    fetchScenarios();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
+
   const handleDelete = async (scheduleId) => {
     if (!window.confirm("이 일정을 삭제하시겠습니까?")) return;
 
@@ -195,6 +227,7 @@ export default function ScheduleList() {
 
   const openEditModal = (schedule) => {
     setTargetScheduleId(schedule.schedule_id);
+    setEditScenarioId(schedule.scenario_id ? String(schedule.scenario_id) : "");
     setEditDate(schedule.scheduled_date ? String(schedule.scheduled_date).slice(0, 10) : getTodayString());
     setEditRepeat(schedule.repeat_type || "매일");
 
@@ -227,6 +260,7 @@ export default function ScheduleList() {
         `${API_BASE_URL}/api/v1/schedules/update`,
         {
           schedule_id: targetScheduleId,
+          scenario_id: editScenarioId ? Number(editScenarioId) : undefined,
           scheduled_date: editDate,
           scheduled_time: toScheduledTime(editAmpm, editHour, editMinute),
           repeat_type: editRepeat,
@@ -309,6 +343,11 @@ export default function ScheduleList() {
               </div>
 
               <p className="text-[15px] font-bold text-gray-700">
+                {item.scenario_title || "대화 주제 미정"}
+                {item.scenario_category ? ` · ${item.scenario_category}` : ""}
+              </p>
+
+              <p className="text-[15px] font-bold text-gray-700">
                 {toDisplayDate(item.scheduled_date)}
               </p>
 
@@ -343,6 +382,22 @@ export default function ScheduleList() {
             </div>
 
             <div className="mb-4 rounded-2xl border border-gray-200 bg-gray-50 p-2">
+              <label className="mb-3 block">
+                <span className="mb-2 block text-sm font-black text-gray-700">대화 주제</span>
+                <select
+                  value={editScenarioId}
+                  onChange={(event) => setEditScenarioId(event.target.value)}
+                  className="w-full rounded-xl border border-gray-200 bg-white p-3 text-sm font-bold text-gray-800 focus:outline-none"
+                >
+                  <option value="">기존 주제 유지</option>
+                  {scenarios.map((scenario) => (
+                    <option key={scenario.scenario_id} value={scenario.scenario_id}>
+                      {scenario.title} {scenario.category ? `- ${scenario.category}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
               <input
                 type="date"
                 value={editDate}
