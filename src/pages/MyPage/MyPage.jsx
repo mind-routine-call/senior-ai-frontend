@@ -16,14 +16,14 @@ import { clearAuthSession, getAccessToken, getStoredRole } from "../../utils/aut
 import { getElderHome } from "../../api/elderChat";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
+const ELDER_SETTINGS_STORAGE_KEY = "elderAudioDisplaySettings";
 
 const unwrapResult = (response) => response?.data?.result ?? response?.data ?? null;
 
 const getStoredElderId = () =>
   localStorage.getItem("selectedElderId") ||
   localStorage.getItem("elder_id") ||
-  localStorage.getItem("elderId") ||
-  "1";
+  localStorage.getItem("elderId");
 
 const buildAuthConfig = () => {
   const token = getAccessToken();
@@ -33,25 +33,51 @@ const buildAuthConfig = () => {
 const getFirstValue = (...values) =>
   values.find((value) => value !== undefined && value !== null && String(value).trim() !== "");
 
+const readElderSettings = () => {
+  if (typeof window === "undefined") return {};
+
+  try {
+    return JSON.parse(localStorage.getItem(ELDER_SETTINGS_STORAGE_KEY) || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const readSettingNumber = (settings, key, defaultValue) => {
+  const value = Number(settings[key]);
+  return Number.isFinite(value) ? value : defaultValue;
+};
+
 export default function MyPage() {
   const navigate = useNavigate();
   const storedRole = getStoredRole();
+  const savedSettings = readElderSettings();
 
   const [loading, setLoading] = useState(true);
   const [userData, setUserData] = useState(null);
   const [elderList, setElderList] = useState([]);
   const [inviteCode, setInviteCode] = useState("");
-  const [speechSpeed, setSpeechSpeed] = useState(50);
-  const [volume, setVolume] = useState(70);
-  const [fontSize, setFontSize] = useState("아주 크게");
+  const [speechSpeed, setSpeechSpeed] = useState(() => readSettingNumber(savedSettings, "speechSpeed", 50));
+  const [volume, setVolume] = useState(() => readSettingNumber(savedSettings, "volume", 70));
+  const [fontSize, setFontSize] = useState(() => savedSettings.fontSize || "아주 크게");
 
   const role = userData?.role || storedRole || "guardian";
   const isGuardian = role === "guardian";
 
   const activeElderId = useMemo(() => {
     const firstElderId = elderList[0]?.elder_id;
-    return String(firstElderId || getStoredElderId());
+    const storedElderId = getStoredElderId();
+    return firstElderId || storedElderId ? String(firstElderId || storedElderId) : "";
   }, [elderList]);
+
+  useEffect(() => {
+    if (isGuardian) return;
+
+    localStorage.setItem(
+      ELDER_SETTINGS_STORAGE_KEY,
+      JSON.stringify({ speechSpeed, volume, fontSize }),
+    );
+  }, [fontSize, isGuardian, speechSpeed, volume]);
 
   useEffect(() => {
     let ignore = false;
@@ -76,7 +102,7 @@ export default function MyPage() {
         if (roleFromStorage === "elder") {
           const [profileResult, homeResult] = await Promise.allSettled([
             profileRequest,
-            getElderHome(Number(getStoredElderId())),
+            getElderHome(),
           ]);
 
           if (ignore) return;
@@ -100,6 +126,11 @@ export default function MyPage() {
               "연결된 보호자"
             ),
           });
+          const resolvedElderId = getFirstValue(elder.elder_id, home?.elder?.elder_id);
+          if (resolvedElderId) {
+            localStorage.setItem("elder_id", String(resolvedElderId));
+            localStorage.setItem("selectedElderId", String(resolvedElderId));
+          }
           return;
         }
 
@@ -174,7 +205,7 @@ export default function MyPage() {
   };
 
   const goHome = () => {
-    navigate(isGuardian ? `/dashboard/${activeElderId}` : "/elder-home");
+    navigate(isGuardian && activeElderId ? `/dashboard/${activeElderId}` : isGuardian ? "/dashboard" : "/elder-home");
   };
 
   const goSchedule = () => {

@@ -56,7 +56,7 @@ export default function ElderChat() {
       let firstQuestion = starterQuestions[0]
 
       try {
-        const session = await startChatSession({ elderId: 1, scenarioId: 1 })
+        const session = await startChatSession({ scenarioId: 1 })
         if (!isMounted) return
         setCallId(session?.call_id)
         firstQuestion = session?.initial_question || firstQuestion

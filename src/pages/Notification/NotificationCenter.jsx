@@ -3,7 +3,6 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import axios from "axios";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
-const DEMO_ELDER_ID = "1";
 
 const getStoredElderId = () =>
   localStorage.getItem("elder_id") ||
@@ -19,8 +18,7 @@ const getActiveElderId = (routeElderId, searchParams) =>
   routeElderId ||
   searchParams.get("elder_id") ||
   searchParams.get("elderId") ||
-  getStoredElderId() ||
-  DEMO_ELDER_ID;
+  getStoredElderId();
 
 const formatDateTime = (value) => {
   if (!value) return "시간 정보 없음";
@@ -75,11 +73,46 @@ export default function NotificationCenter() {
     [alerts],
   );
 
+  const markAlertAsChecked = async (alert) => {
+    if (alert.is_checked) return;
+
+    const token = getAuthToken();
+    await axios.patch(
+      `${API_BASE_URL}/api/v1/dashboard/alerts/${alert.alert_id}/check`,
+      { is_checked: true },
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      },
+    );
+
+    setAlerts((currentAlerts) =>
+      currentAlerts.map((item) =>
+        item.alert_id === alert.alert_id ? { ...item, is_checked: true } : item,
+      ),
+    );
+  };
+
+  const handleAlertClick = async (alert) => {
+    try {
+      await markAlertAsChecked(alert);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      navigate(`/dashboard/${alert.elder_id}`);
+    }
+  };
+
   useEffect(() => {
     let ignore = false;
 
     const fetchAlerts = async () => {
       try {
+        if (!activeElderId) {
+          setAlerts([]);
+          setErrorMessage("먼저 관리할 어르신을 선택해주세요.");
+          return;
+        }
+
         const token = getAuthToken();
         const response = await axios.get(
           `${API_BASE_URL}/api/v1/dashboard/${activeElderId}/alerts`,
@@ -156,7 +189,7 @@ export default function NotificationCenter() {
               <button
                 type="button"
                 key={alert.alert_id}
-                onClick={() => navigate(`/dashboard?elder_id=${alert.elder_id}`)}
+                onClick={() => handleAlertClick(alert)}
                 className={`w-full rounded-2xl border p-4 text-left shadow-sm transition active:scale-[0.99] ${tone.card} ${
                   alert.is_checked ? "opacity-70" : ""
                 }`}
