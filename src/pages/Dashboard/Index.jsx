@@ -47,8 +47,8 @@ const formatDateTime = (dateValue) => {
 };
 
 const getGenderLabel = (gender) => {
-  if (gender === "M") return "남성";
-  if (gender === "F") return "여성";
+  if (["M", "남", "남성"].includes(gender)) return "남성";
+  if (["F", "여", "여성"].includes(gender)) return "여성";
   return "성별 미입력";
 };
 
