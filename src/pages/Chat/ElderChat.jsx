@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft,
   CheckCircle2,
@@ -13,6 +13,7 @@ import {
 } from 'lucide-react'
 import {
   endChatSession,
+  getElderHome,
   saveChatTurn,
   saveUtteranceAnalysis,
   startChatSession,
@@ -29,8 +30,40 @@ const createMessage = (speaker, text, meta = {}) => ({
   ...meta,
 })
 
+const toPositiveNumber = (value) => {
+  const numberValue = Number(value)
+  return Number.isInteger(numberValue) && numberValue > 0 ? numberValue : undefined
+}
+
+const normalizeSchedule = (schedule) => {
+  if (!schedule) return {}
+
+  return {
+    scheduleId: toPositiveNumber(schedule.scheduleId ?? schedule.schedule_id),
+    scenarioId: toPositiveNumber(schedule.scenarioId ?? schedule.scenario_id),
+    scenarioTitle: schedule.scenarioTitle ?? schedule.scenario_title,
+    scheduledTime: schedule.scheduledTime ?? schedule.scheduled_time,
+  }
+}
+
+const resolveStartSchedule = async (routeSchedule) => {
+  const normalizedRouteSchedule = normalizeSchedule(routeSchedule)
+
+  if (normalizedRouteSchedule.scheduleId || normalizedRouteSchedule.scenarioId) {
+    return normalizedRouteSchedule
+  }
+
+  try {
+    const home = await getElderHome()
+    return normalizeSchedule(home?.schedules?.[0])
+  } catch {
+    return {}
+  }
+}
+
 export default function ElderChat() {
   const navigate = useNavigate()
+  const location = useLocation()
   const recognitionRef = useRef(null)
   const listenStartedAtRef = useRef(null)
   const liveTextRef = useRef('')
@@ -47,6 +80,10 @@ export default function ElderChat() {
   const [errorMessage, setErrorMessage] = useState('')
   const [ended, setEnded] = useState(false)
 
+  const routeSchedule = useMemo(
+    () => location.state?.nextSchedule || null,
+    [location.state],
+  )
   const speechSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
 
   useEffect(() => {
@@ -56,7 +93,11 @@ export default function ElderChat() {
       let firstQuestion = starterQuestions[0]
 
       try {
-        const session = await startChatSession({ scenarioId: 1 })
+        const startSchedule = await resolveStartSchedule(routeSchedule)
+        const session = await startChatSession({
+          scenarioId: startSchedule.scenarioId,
+          scheduleId: startSchedule.scheduleId,
+        })
         if (!isMounted) return
         setCallId(session?.call_id)
         firstQuestion = session?.initial_question || firstQuestion
@@ -77,7 +118,7 @@ export default function ElderChat() {
       recognitionRef.current?.abort?.()
       stopSpeaking()
     }
-  }, [])
+  }, [routeSchedule])
 
   const appendAiMessage = (text, kind = 'reply') => {
     setCurrentQuestion(text)
