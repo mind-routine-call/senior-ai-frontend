@@ -58,6 +58,12 @@ const toDateInputValue = (value) => {
   return String(value).slice(0, 10);
 };
 
+const normalizeGenderValue = (gender) => {
+  if (["M", "남", "남성"].includes(gender)) return "남";
+  if (["F", "여", "여성"].includes(gender)) return "여";
+  return "";
+};
+
 export default function MyPage() {
   const navigate = useNavigate();
   const storedRole = getStoredRole();
@@ -238,7 +244,7 @@ export default function MyPage() {
   const openProfileEditor = () => {
     setProfileForm({
       name: userData?.name || "",
-      gender: userData?.gender || "",
+      gender: normalizeGenderValue(userData?.gender),
       birth_date: toDateInputValue(userData?.birth_date),
       phone: userData?.phone || "",
       cognitive_note: userData?.cognitive_note || "",
