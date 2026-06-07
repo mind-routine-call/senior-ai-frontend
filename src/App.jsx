@@ -20,7 +20,7 @@ export default function App() {
   return (
     <div className="flex h-screen w-screen items-center justify-center">
       <div className="relative h-[852px] w-[393px] shrink-0 overflow-hidden rounded-[40px] bg-white shadow-[0_4px_32px_rgba(0,0,0,0.18)]">
-        <div className="h-full w-full overflow-y-auto">
+        <div className="h-full w-full">
           <BrowserRouter>
             <Routes>
               <Route element={<AppLayout />}>

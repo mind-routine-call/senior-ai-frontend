@@ -1,9 +1,28 @@
-import { Outlet } from "react-router-dom"
+import { Outlet, useLocation } from "react-router-dom";
+import GuardianNav from "../components/nav/GuardianNav";
+import ElderNav from "../components/nav/ElderNav";
+
+const GUARDIAN_PATHS = ["/dashboard", "/schedule", "/notification", "/memory"];
+const ELDER_PATHS = ["/elder-home", "/elder-chat"];
+
+function getNavType(pathname) {
+  const role = localStorage.getItem("role");
+  if (role === "guardian" && GUARDIAN_PATHS.some((p) => pathname.startsWith(p))) return "guardian";
+  if (role === "elder" && ELDER_PATHS.some((p) => pathname.startsWith(p))) return "elder";
+  return null;
+}
 
 export default function AppLayout() {
+  const { pathname } = useLocation();
+  const navType = getNavType(pathname);
+
   return (
-    <div className="w-full px-4 h-full">
-      <Outlet />
+    <div className="flex h-full w-full flex-col">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4">
+        <Outlet />
+      </div>
+      {navType === "guardian" && <GuardianNav />}
+      {navType === "elder" && <ElderNav />}
     </div>
-  )
+  );
 }

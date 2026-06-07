@@ -147,7 +147,7 @@ export default function Account({ type = "guardian" }) {
                     />
                 ))}
             </div>
-            <div className="mt-[38px] pb-4">
+            <div className="mt-[38px] pb-16">
                 <Button title={"회원가입"} main onClick={handleSubmit} />
             </div>
         </div>

@@ -22,40 +22,15 @@ const getActiveElderId = (routeElderId, searchParams) =>
 
 const formatDateTime = (value) => {
   if (!value) return "시간 정보 없음";
-
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return String(value);
-
-  return new Intl.DateTimeFormat("ko-KR", {
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  }).format(date);
+  if (isNaN(date)) return String(value);
+  return new Intl.DateTimeFormat("ko-KR", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" }).format(date);
 };
 
-const getAlertTone = (alert) => {
-  if (alert.risk_level === "위험") {
-    return {
-      card: "border-red-200 bg-red-50",
-      badge: "bg-red-600 text-white",
-      label: "위험",
-    };
-  }
-
-  if (alert.risk_level === "주의") {
-    return {
-      card: "border-amber-200 bg-amber-50",
-      badge: "bg-amber-500 text-white",
-      label: "주의",
-    };
-  }
-
-  return {
-    card: "border-gray-200 bg-white",
-    badge: "bg-gray-500 text-white",
-    label: alert.alert_type || "알림",
-  };
+const getAlertStyle = (alert) => {
+  if (alert.risk_level === "위험") return { bg: "#FFF3EE", border: "#FFD3C2", badge: "위험", badgeGrad: true };
+  if (alert.risk_level === "주의") return { bg: "#FFFBF0", border: "#FFE9A0", badge: "주의", badgeGrad: false, badgeColor: "#F59E0B" };
+  return { bg: "#f6f6f6", border: "#ebebeb", badge: alert.alert_type || "알림", badgeGrad: false, badgeColor: "#A2A2A2" };
 };
 
 export default function NotificationCenter() {
@@ -68,114 +43,64 @@ export default function NotificationCenter() {
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
 
-  const unreadCount = useMemo(
-    () => alerts.filter((alert) => !alert.is_checked).length,
-    [alerts],
-  );
-
-  const markAlertAsChecked = async (alert) => {
-    if (alert.is_checked) return;
-
-    const token = getAuthToken();
-    await axios.patch(
-      `${API_BASE_URL}/api/v1/dashboard/alerts/${alert.alert_id}/check`,
-      { is_checked: true },
-      {
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-      },
-    );
-
-    setAlerts((currentAlerts) =>
-      currentAlerts.map((item) =>
-        item.alert_id === alert.alert_id ? { ...item, is_checked: true } : item,
-      ),
-    );
-  };
-
-  const handleAlertClick = async (alert) => {
-    try {
-      await markAlertAsChecked(alert);
-    } catch (error) {
-      console.error(error);
-    } finally {
-      navigate(`/dashboard/${alert.elder_id}`);
-    }
-  };
+  const unreadCount = useMemo(() => alerts.filter((a) => !a.is_checked).length, [alerts]);
 
   useEffect(() => {
     let ignore = false;
-
     const fetchAlerts = async () => {
       try {
-        if (!activeElderId) {
-          setAlerts([]);
-          setErrorMessage("먼저 관리할 어르신을 선택해주세요.");
-          return;
-        }
-
         const token = getAuthToken();
-        const response = await axios.get(
-          `${API_BASE_URL}/api/v1/dashboard/${activeElderId}/alerts`,
-          {
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          },
-        );
-
+        const res = await axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/alerts`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        });
         if (ignore) return;
-
-        if (isSuccessResponse(response.data)) {
-          setAlerts(response.data.result || []);
-          setErrorMessage("");
+        if (isSuccessResponse(res.data)) {
+          setAlerts(res.data.result || []);
         } else {
           setAlerts([]);
-          setErrorMessage(response.data?.message || "알림을 불러오지 못했습니다.");
+          setErrorMessage(res.data?.message || "알림을 불러오지 못했습니다.");
         }
       } catch (error) {
-        if (!ignore) {
-          console.error(error);
-          setAlerts([]);
-          setErrorMessage(error.response?.data?.message || "알림을 불러오지 못했습니다.");
-        }
+        if (!ignore) { setAlerts([]); setErrorMessage(error.response?.data?.message || "알림을 불러오지 못했습니다."); }
       } finally {
-        if (!ignore) {
-          setLoading(false);
-        }
+        if (!ignore) setLoading(false);
       }
     };
-
     fetchAlerts();
-
-    return () => {
-      ignore = true;
-    };
+    return () => { ignore = true; };
   }, [activeElderId]);
 
   return (
-    <div className="flex min-h-full flex-col bg-gray-50 py-6 font-sans">
-      <div className="mb-5 flex items-center justify-between">
+    <div className="flex min-h-full flex-col bg-white py-6">
+      <div className="mb-6 flex items-center justify-between">
         <div>
-          <p className="text-xs font-bold text-gray-500">인지 상태 모니터링</p>
-          <h1 className="mt-1 text-[22px] font-black text-gray-900">이상징후 알림</h1>
+          <p className="text-xs font-bold" style={{ color: "#FF6E61" }}>인지 상태 모니터링</p>
+          <h1 className="mt-0.5 text-[22px] font-semibold">이상징후 알림</h1>
         </div>
-        <div className="rounded-full bg-red-600 px-3 py-1 text-sm font-black text-white">
-          {unreadCount}
-        </div>
+        {unreadCount > 0 && (
+          <div
+            className="rounded-2xl px-3 py-1.5 text-[13px] font-semibold text-white"
+            style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
+          >
+            미확인 {unreadCount}건
+          </div>
+        )}
       </div>
 
       {loading && (
-        <div className="rounded-2xl bg-white p-6 text-center text-sm font-bold text-gray-500 shadow-sm">
-          이상징후 알림을 불러오는 중입니다.
+        <div className="rounded-2xl bg-[#f6f6f6] p-6 text-center text-[14px] text-[#A2A2A2]">
+          알림을 불러오는 중입니다.
         </div>
       )}
 
       {!loading && errorMessage && (
-        <div className="rounded-2xl border border-red-100 bg-red-50 p-5 text-sm font-bold leading-relaxed text-red-700">
+        <div className="rounded-2xl bg-[#FFF3EE] p-4 text-[14px] font-semibold" style={{ color: "#FF6E61" }}>
           {errorMessage}
         </div>
       )}
 
       {!loading && !errorMessage && alerts.length === 0 && (
-        <div className="rounded-2xl bg-white p-8 text-center text-sm font-bold leading-relaxed text-gray-500 shadow-sm">
+        <div className="rounded-2xl bg-[#f6f6f6] p-8 text-center text-[14px] text-[#A2A2A2]">
           아직 감지된 이상징후 알림이 없습니다.
         </div>
       )}
@@ -183,31 +108,28 @@ export default function NotificationCenter() {
       {!loading && !errorMessage && alerts.length > 0 && (
         <div className="flex flex-col gap-3">
           {alerts.map((alert) => {
-            const tone = getAlertTone(alert);
-
+            const s = getAlertStyle(alert);
             return (
               <button
                 type="button"
                 key={alert.alert_id}
-                onClick={() => handleAlertClick(alert)}
-                className={`w-full rounded-2xl border p-4 text-left shadow-sm transition active:scale-[0.99] ${tone.card} ${
-                  alert.is_checked ? "opacity-70" : ""
-                }`}
+                onClick={() => navigate(`/dashboard?elder_id=${alert.elder_id}`)}
+                className="w-full rounded-2xl border p-4 text-left transition active:scale-[0.99]"
+                style={{ background: s.bg, borderColor: s.border, opacity: alert.is_checked ? 0.6 : 1 }}
               >
-                <div className="mb-3 flex items-center justify-between gap-3">
-                  <span className="text-sm font-black text-gray-900">
-                    어르신 #{alert.elder_id}
-                  </span>
-                  <span className={`rounded-full px-2.5 py-1 text-xs font-black ${tone.badge}`}>
-                    {tone.label}
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="text-[14px] font-semibold">어르신 #{alert.elder_id}</span>
+                  <span
+                    className="rounded-lg px-2.5 py-1 text-[12px] font-bold text-white"
+                    style={s.badgeGrad
+                      ? { background: "linear-gradient(135deg, #FF6E61, #FCA963)" }
+                      : { background: s.badgeColor }}
+                  >
+                    {s.badge}
                   </span>
                 </div>
-
-                <p className="text-sm font-bold leading-relaxed text-gray-700">
-                  {alert.alert_message}
-                </p>
-
-                <div className="mt-3 flex items-center justify-between text-xs font-bold text-gray-500">
+                <p className="text-[14px] leading-relaxed">{alert.alert_message}</p>
+                <div className="mt-2 flex items-center justify-between text-[12px] text-[#A2A2A2]">
                   <span>{alert.is_checked ? "확인됨" : "미확인"}</span>
                   <span>{formatDateTime(alert.created_at)}</span>
                 </div>

@@ -1,13 +1,14 @@
 .elder-shell {
-  --ink: #172033;
-  --muted: #667085;
-  --line: #d9dee7;
+  --ink: #1a1a1a;
+  --muted: #A2A2A2;
+  --line: #ebebeb;
   --surface: #ffffff;
-  --soft: #f6f8fb;
-  --teal: #0f766e;
-  --teal-soft: #dff5ef;
-  --blue-soft: #e7f0ff;
-  --coral-soft: #fff0e8;
+  --soft: #f6f6f6;
+  --brand: #FF6E61;
+  --brand-2: #FCA963;
+  --brand-gradient: linear-gradient(135deg, #FF6E61, #FCA963);
+  --brand-soft: #FFF3EE;
+  --brand-border: #FFD3C2;
   min-height: 100%;
   margin: 0 -1rem;
   padding: 1.5rem 1.25rem;
@@ -40,7 +41,7 @@
 .eyebrow {
   font-size: 0.85rem;
   font-weight: 800;
-  color: var(--teal);
+  color: var(--brand);
   letter-spacing: 0;
 }
 
@@ -93,7 +94,7 @@
   background: var(--surface);
   border: 1px solid var(--line);
   border-radius: 1.5rem;
-  box-shadow: 0 12px 26px rgba(23, 32, 51, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .assistant-summary {
@@ -108,7 +109,7 @@
 }
 
 .assistant-summary__label {
-  color: var(--teal);
+  color: var(--brand);
   font-weight: 850;
   font-size: 0.95rem;
 }
@@ -162,7 +163,7 @@
   gap: 0.85rem;
   padding: 1rem;
   border-radius: 1.15rem;
-  background: var(--blue-soft);
+  background: var(--brand-soft);
 }
 
 .next-schedule strong {
@@ -208,10 +209,10 @@
 
 .primary-action {
   width: 100%;
-  background: var(--ink);
+  background: var(--brand-gradient);
   color: white;
   font-size: 1.32rem;
-  box-shadow: 0 16px 28px rgba(23, 32, 51, 0.18);
+  box-shadow: 0 8px 20px rgba(255, 110, 97, 0.25);
 }
 
 .secondary-action {
@@ -277,7 +278,7 @@
 }
 
 .call-card__time svg {
-  color: var(--teal);
+  color: var(--brand);
 }
 
 .call-card__time strong {
@@ -326,8 +327,8 @@
   height: 4.25rem;
   margin: 0 auto 1rem;
   border-radius: 1.25rem;
-  background: var(--teal-soft);
-  color: var(--teal);
+  background: var(--brand-soft);
+  color: var(--brand);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -358,12 +359,12 @@
   width: 0.6rem;
   height: 0.6rem;
   border-radius: 999px;
-  background: #cbd5e1;
+  background: #d9d9d9;
 }
 
 .step-dots .active {
   width: 1.8rem;
-  background: var(--teal);
+  background: var(--brand);
 }
 
 .chat-stage {
@@ -407,7 +408,7 @@
   width: 0.72rem;
   height: 0.72rem;
   border-radius: 999px;
-  background: var(--teal);
+  background: var(--brand);
 }
 
 .end-call-button {
@@ -438,8 +439,8 @@
   min-height: 2.6rem;
   padding: 0 0.9rem;
   border-radius: 999px;
-  background: var(--teal-soft);
-  color: var(--teal);
+  background: var(--brand-soft);
+  color: var(--brand);
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
@@ -480,7 +481,7 @@
 .message-bubble small {
   display: block;
   margin-top: 0.55rem;
-  color: var(--teal);
+  color: var(--brand);
   font-weight: 800;
 }
 
@@ -499,19 +500,19 @@
 
 .message-bubble--elder span,
 .message-bubble--elder small {
-  color: rgba(255, 255, 255, 0.76);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .message-bubble--live {
-  background: var(--teal);
-  border-color: var(--teal);
+  background: var(--brand);
+  border-color: var(--brand);
 }
 
 .retry-panel {
   padding: 1rem;
   border-radius: 1.25rem;
-  background: var(--coral-soft);
-  border: 1px solid #ffd4bf;
+  background: var(--brand-soft);
+  border: 1px solid var(--brand-border);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -527,7 +528,7 @@
 .retry-panel button {
   background: white;
   color: var(--ink);
-  border: 1px solid #ffc2a3;
+  border: 1px solid var(--brand-border);
   font-size: 1rem;
 }
 
@@ -554,10 +555,10 @@
 .mic-action {
   width: 100%;
   min-height: 5rem;
-  background: var(--teal);
+  background: var(--brand-gradient);
   color: white;
   font-size: 1.35rem;
-  box-shadow: 0 16px 30px rgba(15, 118, 110, 0.24);
+  box-shadow: 0 10px 24px rgba(255, 110, 97, 0.25);
 }
 
 .mic-action--active {
@@ -584,7 +585,7 @@
   border-radius: 1.35rem;
   border: 1px solid var(--line);
   background: var(--surface);
-  box-shadow: 0 12px 26px rgba(23, 32, 51, 0.07);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .panel-close-button {
@@ -605,7 +606,7 @@
 .detail-row {
   padding: 1rem;
   border-radius: 1rem;
-  background: var(--blue-soft);
+  background: var(--brand-soft);
 }
 
 .detail-row span,
@@ -656,7 +657,7 @@
   margin-top: 0.85rem;
   padding: 0.95rem;
   border-radius: 1rem;
-  background: var(--teal-soft);
+  background: var(--brand-soft);
   color: var(--ink);
   font-size: 0.98rem;
   line-height: 1.42;
@@ -669,16 +670,16 @@
 
 .finish-panel svg {
   margin: 0 auto 0.85rem;
-  color: var(--teal);
+  color: var(--brand);
 }
 
 .chat-face {
   width: 6.8rem;
   height: 6.8rem;
   border-radius: 2rem;
-  background: #172033;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  box-shadow: 0 18px 35px rgba(23, 32, 51, 0.2);
+  background: #1a1a1a;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
   position: relative;
   display: flex;
   align-items: center;
@@ -713,7 +714,7 @@
   width: 0.52rem;
   height: 0.52rem;
   border-radius: 999px;
-  background: #172033;
+  background: #1a1a1a;
 }
 
 .chat-face--compact .chat-face__eye {
@@ -727,7 +728,7 @@
   width: 1.45rem;
   height: 0.28rem;
   border-radius: 999px;
-  background: #0f766e;
+  background: #FF6E61;
 }
 
 .chat-face--compact .chat-face__mouth {
@@ -742,7 +743,7 @@
   width: 2.3rem;
   height: 2.3rem;
   border-radius: 0.9rem;
-  background: var(--teal);
+  background: var(--brand-gradient);
   color: white;
   border: 3px solid var(--soft);
   display: flex;
@@ -757,7 +758,7 @@
 }
 
 .chat-face--listening {
-  outline: 5px solid rgba(15, 118, 110, 0.15);
+  outline: 5px solid rgba(255, 110, 97, 0.15);
 }
 
 @media (max-height: 760px) {

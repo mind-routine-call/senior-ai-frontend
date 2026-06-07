@@ -16,9 +16,11 @@ export default function GenderToggle({ title, onChange }) {
                 {GENDERS.map((gender) => (
                     <button
                         key={gender}
+                        type="button"
                         onClick={() => handleClick(gender)}
                         className={`flex-1 rounded-lg text-sm font-medium transition-colors
-                        ${selectedGender === gender ? "bg-white text-black" : "text-[#A2A2A2]"}`}
+                        ${selectedGender === gender ? "bg-white font-semibold" : "text-[#A2A2A2]"}`}
+                        style={selectedGender === gender ? { color: "#FF6E61" } : undefined}
                         >
                         {gender}
                     </button>

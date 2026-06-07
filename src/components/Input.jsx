@@ -7,10 +7,10 @@ export default function Input({ title, placeholder, type = 'text', value, onChan
             type={type}
             value={value}
             onChange={onChange}
-            className="w-full bg-[#f6f6f6] h-15 rounded-lg px-4 hover:border border-blue-400 placeholder:text-[#A2A2A2]"
+            className="w-full bg-[#f6f6f6] h-15 rounded-lg px-4 hover:border border-[#FF6E61] placeholder:text-[#A2A2A2]"
             placeholder={placeholder}/>
             {onClick && (
-                <button onClick={onClick} className="absolute right-3 top-1/2 -translate-y-1/2 w-17.75 h-8.75 bg-black rounded-lg">
+                <button type="button" onClick={onClick} className="absolute right-3 top-1/2 -translate-y-1/2 w-17.75 h-8.75 bg-[#FF6E61] font-semibold rounded-lg">
                     <p className="text-white">{buttonText}</p>
                 </button>
             )}
