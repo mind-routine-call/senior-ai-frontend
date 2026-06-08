@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { UserRound } from "lucide-react";
+import { ChevronRight, MessageCircle, UserRound } from "lucide-react";
 import { getAccessToken } from "../../utils/authSession";
 import {
   CartesianGrid,
@@ -431,15 +431,27 @@ export default function Dashboard() {
       </section>
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-extrabold text-gray-900">
-          최근 대화 내역
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <h2 className="text-base font-extrabold text-gray-900">
+            최근 대화 내역
+          </h2>
+          <button
+            type="button"
+            onClick={() => navigate(`/guardian/elders/${activeElderId}/chats`)}
+            className="flex items-center gap-1 rounded-full bg-[#eef5ff] px-3 py-1.5 text-xs font-black text-[#2f66c9]"
+          >
+            전체보기
+            <ChevronRight size={15} strokeWidth={2.7} />
+          </button>
+        </div>
         <div className="mt-4 flex flex-col gap-3">
           {chatsData.length > 0 ? (
             chatsData.map((chat) => (
-              <article
+              <button
                 key={`chat-${chat.call_id}`}
-                className="rounded-xl border border-gray-100 bg-gray-50 p-4"
+                type="button"
+                onClick={() => navigate(`/guardian/elders/${activeElderId}/chats/${chat.call_id}`)}
+                className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-left transition active:scale-[0.99]"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -454,10 +466,11 @@ export default function Dashboard() {
                     {chat.call_status || "상태 없음"}
                   </span>
                 </div>
-                <p className="mt-3 text-xs font-semibold text-gray-500">
+                <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-gray-500">
+                  <MessageCircle size={15} strokeWidth={2.4} />
                   대화 턴 {chat.turn_count || 0}개
                 </p>
-              </article>
+              </button>
             ))
           ) : (
             <div className="rounded-xl bg-gray-50 py-6 text-center text-sm font-semibold text-gray-400">
