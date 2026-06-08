@@ -49,10 +49,14 @@ export default function Account({ type = "guardian" }) {
         inviteCode: '',
     })
     const [errors, setErrors] = useState({})
+    const [notices, setNotices] = useState({})
+    const [submitError, setSubmitError] = useState('')
 
     const handleChange = (key) => (e) => {
         setForm((prev) => ({ ...prev, [key]: e.target.value }))
         setErrors((prev) => ({ ...prev, [key]: '' }))
+        setNotices((prev) => ({ ...prev, [key]: '' }))
+        setSubmitError('')
     }
 
     const isValidDate = (str) => {
@@ -71,16 +75,64 @@ export default function Account({ type = "guardian" }) {
         return newErrors
     }
 
+    const getApiMessage = (err, fallback) => {
+        return err?.response?.data?.message || fallback
+    }
+
     const handleSendSms = async () => {
-        await sendSms({ phone: form.phone })
+        if (!PHONE_REGEX.test(form.phone)) {
+            setErrors((prev) => ({ ...prev, phone: '올바른 전화번호를 입력해주세요.' }))
+            return
+        }
+
+        try {
+            const res = await sendSms({ phone: form.phone })
+            const verificationCode = res.data?.result?.verification_code
+            if (verificationCode) {
+                setForm((prev) => ({ ...prev, code: verificationCode }))
+                setNotices((prev) => ({
+                    ...prev,
+                    phone: '개발용 인증번호가 발급되었습니다.',
+                    code: '인증번호가 자동 입력되었습니다. 확인을 눌러주세요.',
+                }))
+            } else {
+                setNotices((prev) => ({ ...prev, phone: '인증번호가 전송되었습니다.' }))
+            }
+        } catch (err) {
+            setErrors((prev) => ({ ...prev, phone: getApiMessage(err, '인증번호 전송에 실패했습니다.') }))
+        }
     }
 
     const handleVerifySms = async () => {
-        await verifySms({ phone: form.phone, code: form.code })
+        if (!PHONE_REGEX.test(form.phone)) {
+            setErrors((prev) => ({ ...prev, phone: '올바른 전화번호를 입력해주세요.' }))
+            return
+        }
+        if (!/^\d{6}$/.test(form.code)) {
+            setErrors((prev) => ({ ...prev, code: '인증번호 6자리를 입력해주세요.' }))
+            return
+        }
+
+        try {
+            await verifySms({ phone: form.phone, code: form.code })
+            setNotices((prev) => ({ ...prev, code: '전화번호 인증이 완료되었습니다.' }))
+        } catch (err) {
+            setErrors((prev) => ({ ...prev, code: getApiMessage(err, '인증번호 확인에 실패했습니다.') }))
+        }
     }
 
     const handleVerifyInviteCode = async () => {
-        await verifyInviteCode({ invite_code: form.inviteCode })
+        if (!form.inviteCode.trim()) {
+            setErrors((prev) => ({ ...prev, inviteCode: '초대코드를 입력해주세요.' }))
+            return
+        }
+
+        try {
+            await verifyInviteCode({ invite_code: form.inviteCode.trim() })
+            setNotices((prev) => ({ ...prev, inviteCode: '초대코드 인증이 완료되었습니다.' }))
+        } catch (err) {
+            setErrors((prev) => ({ ...prev, inviteCode: getApiMessage(err, '초대코드 인증에 실패했습니다.') }))
+        }
     }
 
     const getButtonHandler = (buttonType) => {
@@ -95,6 +147,7 @@ export default function Account({ type = "guardian" }) {
             setErrors(newErrors)
             return
         }
+        setSubmitError('')
 
         const data = {
             name: form.name.trim(),
@@ -103,19 +156,23 @@ export default function Account({ type = "guardian" }) {
             password: form.password,
             gender: GENDER_MAP[form.gender],
         }
-        if (type === 'guardian') {
-            const res = await guardianSignup(data)
+        try {
+            if (type === 'guardian') {
+                const res = await guardianSignup(data)
 
-            if (res.data?.success && res.data?.result?.invite_code) {
-                localStorage.setItem("my_invite_code", res.data.result.invite_code);
-                console.log('초대코드 로컬스토리지 저장 성공:', res.data.result.invite_code);
+                if (res.data?.isSuccess && res.data?.result?.invite_code) {
+                    localStorage.setItem("my_invite_code", res.data.result.invite_code);
+                    console.log('초대코드 로컬스토리지 저장 성공:', res.data.result.invite_code);
+                }
+
+                console.log('초대코드:', res.data?.result?.invite_code)
+            } else {
+                await elderSignup({ ...data, invite_code: form.inviteCode.trim() })
             }
-
-            console.log('초대코드:', res.data.result.invite_code)
-        } else {
-            await elderSignup({ ...data, invite_code: form.inviteCode })
+            navigate('/login')
+        } catch (err) {
+            setSubmitError(getApiMessage(err, '회원가입에 실패했습니다. 입력 정보를 다시 확인해주세요.'))
         }
-        navigate('/login')
     }
 
     return (
@@ -143,11 +200,17 @@ export default function Account({ type = "guardian" }) {
                         onChange={handleChange(field.stateKey)}
                         buttonText={field.buttonText}
                         error={errors[field.stateKey]}
+                        notice={notices[field.stateKey]}
                         {...(field.hasButton && { onClick: getButtonHandler(field.buttonType) })}
                     />
                 ))}
             </div>
             <div className="mt-[38px] pb-16">
+                {submitError && (
+                    <p className="mb-3 rounded-xl bg-[#FFF3EE] px-3 py-2 text-[13px] font-semibold text-[#FF6E61]">
+                        {submitError}
+                    </p>
+                )}
                 <Button title={"회원가입"} main onClick={handleSubmit} />
             </div>
         </div>

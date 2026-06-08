@@ -1,12 +1,13 @@
 import { Outlet, useLocation } from "react-router-dom";
 import GuardianNav from "../components/nav/GuardianNav";
 import ElderNav from "../components/nav/ElderNav";
+import { getStoredRole } from "../utils/authSession";
 
 const GUARDIAN_PATHS = ["/dashboard", "/schedule", "/notification", "/memory"];
 const ELDER_PATHS = ["/elder-home", "/elder-chat"];
 
 function getNavType(pathname) {
-  const role = localStorage.getItem("role");
+  const role = getStoredRole();
   if (role === "guardian" && GUARDIAN_PATHS.some((p) => pathname.startsWith(p))) return "guardian";
   if (role === "elder" && ELDER_PATHS.some((p) => pathname.startsWith(p))) return "elder";
   return null;

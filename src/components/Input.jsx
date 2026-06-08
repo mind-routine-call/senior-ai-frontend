@@ -1,4 +1,14 @@
-export default function Input({ title, placeholder, type = 'text', value, onChange, onClick, buttonText = '확인', error }) {
+export default function Input({
+  title,
+  placeholder,
+  type = 'text',
+  value,
+  onChange,
+  onClick,
+  buttonText = '확인',
+  error,
+  notice,
+}) {
   return (
     <div className="flex flex-col gap-2">
         <p className="text-[18px]">{title}</p>
@@ -16,6 +26,7 @@ export default function Input({ title, placeholder, type = 'text', value, onChan
             )}
         </div>
         {error && <p className="text-red-400 text-sm">{error}</p>}
+        {!error && notice && <p className="text-blue-600 text-sm">{notice}</p>}
     </div>
   )
 }

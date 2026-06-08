@@ -45,10 +45,46 @@ export default function NotificationCenter() {
 
   const unreadCount = useMemo(() => alerts.filter((a) => !a.is_checked).length, [alerts]);
 
+  const markAlertAsChecked = async (alert) => {
+    if (alert.is_checked) return;
+
+    const token = getAuthToken();
+    await axios.patch(
+      `${API_BASE_URL}/api/v1/dashboard/alerts/${alert.alert_id}/check`,
+      { is_checked: true },
+      {
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+      },
+    );
+
+    setAlerts((currentAlerts) =>
+      currentAlerts.map((item) =>
+        item.alert_id === alert.alert_id ? { ...item, is_checked: true } : item,
+      ),
+    );
+  };
+
+  const handleAlertClick = async (alert) => {
+    try {
+      await markAlertAsChecked(alert);
+    } catch (error) {
+      console.error("알림 확인 처리 실패", error);
+    } finally {
+      navigate(`/dashboard/${alert.elder_id}`);
+    }
+  };
+
   useEffect(() => {
     let ignore = false;
     const fetchAlerts = async () => {
       try {
+        if (!activeElderId) {
+          setAlerts([]);
+          setErrorMessage("먼저 관리할 어르신을 선택해주세요.");
+          setLoading(false);
+          return;
+        }
+
         const token = getAuthToken();
         const res = await axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/alerts`, {
           headers: token ? { Authorization: `Bearer ${token}` } : undefined,
@@ -56,6 +92,7 @@ export default function NotificationCenter() {
         if (ignore) return;
         if (isSuccessResponse(res.data)) {
           setAlerts(res.data.result || []);
+          setErrorMessage("");
         } else {
           setAlerts([]);
           setErrorMessage(res.data?.message || "알림을 불러오지 못했습니다.");
@@ -113,7 +150,7 @@ export default function NotificationCenter() {
               <button
                 type="button"
                 key={alert.alert_id}
-                onClick={() => navigate(`/dashboard?elder_id=${alert.elder_id}`)}
+                onClick={() => handleAlertClick(alert)}
                 className="w-full rounded-2xl border p-4 text-left transition active:scale-[0.99]"
                 style={{ background: s.bg, borderColor: s.border, opacity: alert.is_checked ? 0.6 : 1 }}
               >

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { UserRound } from "lucide-react";
+import { Activity, ChevronRight, Loader2, MessageCircle, UserRound } from "lucide-react";
 import { getAccessToken } from "../../utils/authSession";
 import {
   CartesianGrid,
@@ -45,6 +45,11 @@ const getRiskLabel = (riskLevel) => {
   return riskLevel;
 };
 
+const buildAuthConfig = () => {
+  const token = getAccessToken();
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+};
+
 export default function Dashboard() {
   const { elderId: routeElderId } = useParams();
   const navigate = useNavigate();
@@ -54,6 +59,8 @@ export default function Dashboard() {
   const [chatsData, setChatsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisMessage, setAnalysisMessage] = useState("");
 
   const [eldersList, setEldersList] = useState([]);
   const [activeElderId, setActiveElderId] = useState(() => {
@@ -70,8 +77,8 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchEldersList = async () => {
       try {
-        const token = getAccessToken();
-        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+        const config = buildAuthConfig();
+
         const res = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, config);
         if (res.data?.isSuccess || res.data?.success) {
           const elders = res.data.result || [];
@@ -94,7 +101,7 @@ export default function Dashboard() {
             }
           }
         }
-      } catch (error) {
+      } catch {
         if (!activeElderId) {
           setErrorMessage("어르신 정보를 불러오지 못했습니다.");
           setIsLoading(false);
@@ -117,8 +124,8 @@ export default function Dashboard() {
     const fetchDashboardData = async () => {
       setIsLoading(true); setErrorMessage("");
       try {
-        const token = getAccessToken();
-        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+        const config = buildAuthConfig();
+
         const [summaryRes, chartsRes, chatsRes] = await Promise.all([
           axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/summary`, config),
           axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/charts`, config),
@@ -138,6 +145,59 @@ export default function Dashboard() {
     };
     fetchDashboardData();
   }, [activeElderId]);
+
+  const refreshDashboardData = async () => {
+    if (!activeElderId) return;
+
+    const config = buildAuthConfig();
+    const [summaryRes, chartsRes, chatsRes] = await Promise.all([
+      axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/summary`, config),
+      axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/charts`, config),
+      axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/chats`, config),
+    ]);
+
+    if (summaryRes.data?.isSuccess || summaryRes.data?.success) {
+      setSummaryData(summaryRes.data.result);
+    }
+    if (chartsRes.data?.isSuccess || chartsRes.data?.success) {
+      setChartsData(chartsRes.data.result);
+    }
+    if (chatsRes.data?.isSuccess || chatsRes.data?.success) {
+      setChatsData(chatsRes.data.result || []);
+    }
+  };
+
+  const handleEvaluateLatestChat = async () => {
+    const targetChat = chatsData.find((chat) => Number(chat.turn_count || 0) > 0);
+
+    if (!targetChat) {
+      setAnalysisMessage("분석할 대화 기록이 아직 없습니다.");
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      setAnalysisMessage("");
+
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/analysis/evaluate`,
+        { call_id: targetChat.call_id },
+        buildAuthConfig(),
+      );
+
+      if (!(response.data?.isSuccess || response.data?.success)) {
+        throw new Error(response.data?.message || "분석 실행에 실패했습니다.");
+      }
+
+      await refreshDashboardData();
+      setAnalysisMessage("최근 대화 분석 결과가 대시보드에 반영되었습니다.");
+    } catch (error) {
+      console.error("인지평가 실행 실패", error);
+      setAnalysisMessage(error.response?.data?.message || "분석 실행 중 오류가 발생했습니다.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const elder = summaryData?.elder || {};
   const assessment = summaryData?.latest_assessment || {};
@@ -242,6 +302,38 @@ export default function Dashboard() {
 
       {/* 인지 영역별 점수 */}
       <section className="rounded-2xl bg-[#f6f6f6] p-4">
+        <div className="flex items-start gap-3">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white"
+            style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
+          >
+            <Activity size={23} strokeWidth={2.5} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-[16px] font-semibold">인지평가 실행</h2>
+            <p className="mt-1 text-[13px] font-medium leading-5 text-[#A2A2A2]">
+              최근 저장된 대화를 분석해 점수와 리포트 요약을 갱신합니다.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleEvaluateLatestChat}
+          disabled={isAnalyzing}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-semibold text-white disabled:opacity-60"
+          style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
+        >
+          {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Activity size={20} strokeWidth={2.5} />}
+          {isAnalyzing ? "분석 중" : "최근 대화 분석하기"}
+        </button>
+        {analysisMessage && (
+          <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-[13px] font-semibold leading-6 text-[#FF6E61]">
+            {analysisMessage}
+          </p>
+        )}
+      </section>
+
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
         <h2 className="text-[16px] font-semibold mb-4">인지 영역별 점수</h2>
         <div className="flex flex-col gap-3">
           {scoreItems.map((item) => (
@@ -299,11 +391,26 @@ export default function Dashboard() {
 
       {/* 최근 대화 내역 */}
       <section className="rounded-2xl bg-[#f6f6f6] p-4">
-        <h2 className="text-[16px] font-semibold mb-3">최근 대화 내역</h2>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-[16px] font-semibold">최근 대화 내역</h2>
+          <button
+            type="button"
+            onClick={() => navigate(`/guardian/elders/${activeElderId}/chats`)}
+            className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-semibold text-[#FF6E61]"
+          >
+            전체보기
+            <ChevronRight size={15} strokeWidth={2.7} />
+          </button>
+        </div>
         <div className="flex flex-col gap-2">
           {chatsData.length > 0 ? (
             chatsData.map((chat) => (
-              <article key={`chat-${chat.call_id}`} className="rounded-xl bg-white p-3">
+              <button
+                key={`chat-${chat.call_id}`}
+                type="button"
+                onClick={() => navigate(`/guardian/elders/${activeElderId}/chats/${chat.call_id}`)}
+                className="rounded-xl bg-white p-3 text-left transition active:scale-[0.99]"
+              >
                 <div className="flex items-start justify-between gap-2">
                   <div>
                     <h3 className="text-[14px] font-semibold">{chat.scenario_title || "자유 대화"}</h3>
@@ -313,8 +420,11 @@ export default function Dashboard() {
                     {chat.call_status || "상태 없음"}
                   </span>
                 </div>
-                <p className="mt-1.5 text-[12px] text-[#A2A2A2]">대화 턴 {chat.turn_count || 0}개</p>
-              </article>
+                <p className="mt-3 flex items-center gap-2 text-xs font-semibold text-gray-500">
+                  <MessageCircle size={15} strokeWidth={2.4} />
+                  대화 턴 {chat.turn_count || 0}개
+                </p>
+              </button>
             ))
           ) : (
             <div className="rounded-xl bg-white py-5 text-center text-[13px] text-[#A2A2A2]">

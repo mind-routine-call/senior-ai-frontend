@@ -8,12 +8,15 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 import Dashboard from "./pages/Dashboard/Index";
 import ScheduleManager from "./pages/Schedule/ScheduleManager";
 import ScheduleList from "./pages/Schedule/ScheduleList";
+import ScenarioManager from "./pages/Scenario/ScenarioManager";
 import NotificationCenter from "./pages/Notification/NotificationCenter";
 import MemoryList from "./pages/Memory/List";
 import MemoryWrite from "./pages/Memory/Write";
+import GuardianElderRegister from "./pages/ElderRegister/GuardianElderRegister";
 import ElderHome from "./pages/Chat/ElderHome";
 import ElderOnboarding from "./pages/Chat/ElderOnboarding";
 import ElderChat from "./pages/Chat/ElderChat";
+import GuardianChatHistory from "./pages/GuardianChat/GuardianChatHistory";
 import MyPage from "./pages/MyPage/MyPage";
 
 export default function App() {
@@ -35,12 +38,16 @@ export default function App() {
                   <Route path="/schedule" element={<ScheduleManager />} />
                   <Route path="/schedule/:elderId" element={<ScheduleManager />} />
                   <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
+                  <Route path="/scenarios" element={<ScenarioManager />} />
                   <Route path="/notification" element={<NotificationCenter />} />
                   <Route path="/notification/:elderId" element={<NotificationCenter />} />
                   <Route path="/memory" element={<MemoryList />} />
                   <Route path="/memory/:elderId" element={<MemoryList />} />
                   <Route path="/memory/write" element={<MemoryWrite />} />
                   <Route path="/memory/:elderId/write" element={<MemoryWrite />} />
+                  <Route path="/guardian/elders/:elderId/chats" element={<GuardianChatHistory />} />
+                  <Route path="/guardian/elders/:elderId/chats/:callId" element={<GuardianChatHistory />} />
+                  <Route path="/guardian/elders/register" element={<GuardianElderRegister />} />
                 </Route>
                 <Route element={<RoleGuard allowedRoles={["elder"]} />}>
                   <Route path="/elder-home" element={<ElderHome />} />
