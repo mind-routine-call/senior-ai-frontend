@@ -14,6 +14,7 @@ import MemoryWrite from "./pages/Memory/Write";
 import ElderHome from "./pages/Chat/ElderHome";
 import ElderOnboarding from "./pages/Chat/ElderOnboarding";
 import ElderChat from "./pages/Chat/ElderChat";
+import GuardianChatHistory from "./pages/GuardianChat/GuardianChatHistory";
 import MyPage from "./pages/MyPage/MyPage";
 
 export default function App() {
@@ -41,6 +42,8 @@ export default function App() {
                   <Route path="/memory/:elderId" element={<MemoryList />} />
                   <Route path="/memory/write" element={<MemoryWrite />} />
                   <Route path="/memory/:elderId/write" element={<MemoryWrite />} />
+                  <Route path="/guardian/elders/:elderId/chats" element={<GuardianChatHistory />} />
+                  <Route path="/guardian/elders/:elderId/chats/:callId" element={<GuardianChatHistory />} />
                 </Route>
                 <Route element={<RoleGuard allowedRoles={["elder"]} />}>
                   <Route path="/elder-home" element={<ElderHome />} />
