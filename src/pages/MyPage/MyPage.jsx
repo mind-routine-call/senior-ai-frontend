@@ -8,6 +8,7 @@ import {
   Home,
   LogOut,
   NotebookTabs,
+  Plus,
   UserRound,
   Volume2,
   X,
@@ -340,9 +341,19 @@ export default function MyPage() {
             <section className="rounded-[22px] bg-white p-5 shadow-sm">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-black">연결된 어르신</h2>
-                <span className="rounded-full bg-[#ecf3ff] px-3 py-1 text-sm font-bold text-[#2f66c9]">
-                  {elderList.length}명
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-[#ecf3ff] px-3 py-1 text-sm font-bold text-[#2f66c9]">
+                    {elderList.length}명
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/guardian/elders/register")}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2f66c9] text-white shadow-sm"
+                    aria-label="새 어르신 등록"
+                  >
+                    <Plus size={20} strokeWidth={3} />
+                  </button>
+                </div>
               </div>
 
               {elderList.length > 0 ? (
@@ -367,9 +378,18 @@ export default function MyPage() {
                   ))}
                 </div>
               ) : (
-                <p className="rounded-2xl bg-[#f8fbff] p-4 text-center text-sm font-bold text-gray-500">
-                  연결된 어르신 정보가 없습니다.
-                </p>
+                <div className="rounded-2xl bg-[#f8fbff] p-4 text-center">
+                  <p className="text-sm font-bold text-gray-500">
+                    연결된 어르신 정보가 없습니다.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/guardian/elders/register")}
+                    className="mt-3 rounded-2xl bg-[#2f66c9] px-5 py-3 text-sm font-black text-white shadow-sm"
+                  >
+                    새 어르신 등록
+                  </button>
+                </div>
               )}
             </section>
 
