@@ -15,18 +15,60 @@ export default function ResetPassword() {
     newPasswordConfirm: '',
   })
   const [errors, setErrors] = useState({})
+  const [notices, setNotices] = useState({})
+  const [submitError, setSubmitError] = useState('')
 
   const handleChange = (key) => (e) => {
     setForm((prev) => ({ ...prev, [key]: e.target.value }))
     setErrors((prev) => ({ ...prev, [key]: '' }))
+    setNotices((prev) => ({ ...prev, [key]: '' }))
+    setSubmitError('')
+  }
+
+  const getApiMessage = (err, fallback) => {
+    return err?.response?.data?.message || fallback
   }
 
   const handleSendSms = async () => {
-    await sendSms({ phone: form.phone })
+    if (!/^01[0-9]{8,9}$/.test(form.phone)) {
+      setErrors((prev) => ({ ...prev, phone: '올바른 전화번호를 입력해주세요.' }))
+      return
+    }
+
+    try {
+      const res = await sendSms({ phone: form.phone })
+      const verificationCode = res.data?.result?.verification_code
+      if (verificationCode) {
+        setForm((prev) => ({ ...prev, code: verificationCode }))
+        setNotices((prev) => ({
+          ...prev,
+          phone: '개발용 인증번호가 발급되었습니다.',
+          code: '인증번호가 자동 입력되었습니다. 확인을 눌러주세요.',
+        }))
+      } else {
+        setNotices((prev) => ({ ...prev, phone: '인증번호가 전송되었습니다.' }))
+      }
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, phone: getApiMessage(err, '인증번호 전송에 실패했습니다.') }))
+    }
   }
 
   const handleVerifySms = async () => {
-    await verifySms({ phone: form.phone, code: form.code })
+    if (!/^01[0-9]{8,9}$/.test(form.phone)) {
+      setErrors((prev) => ({ ...prev, phone: '올바른 전화번호를 입력해주세요.' }))
+      return
+    }
+    if (!/^\d{6}$/.test(form.code)) {
+      setErrors((prev) => ({ ...prev, code: '인증번호 6자리를 입력해주세요.' }))
+      return
+    }
+
+    try {
+      await verifySms({ phone: form.phone, code: form.code })
+      setNotices((prev) => ({ ...prev, code: '전화번호 인증이 완료되었습니다.' }))
+    } catch (err) {
+      setErrors((prev) => ({ ...prev, code: getApiMessage(err, '인증번호 확인에 실패했습니다.') }))
+    }
   }
 
   const validate = () => {
@@ -42,8 +84,14 @@ export default function ResetPassword() {
       setErrors(newErrors)
       return
     }
-    await resetPassword({ phone: form.phone, new_password: form.newPassword })
-    navigate('/login')
+    setSubmitError('')
+
+    try {
+      await resetPassword({ phone: form.phone, new_password: form.newPassword })
+      navigate('/login')
+    } catch (err) {
+      setSubmitError(getApiMessage(err, '비밀번호 재설정에 실패했습니다. 입력 정보를 다시 확인해주세요.'))
+    }
   }
 
   return (
@@ -60,6 +108,8 @@ export default function ResetPassword() {
           onChange={handleChange('phone')}
           buttonText="전송"
           onClick={handleSendSms}
+          error={errors.phone}
+          notice={notices.phone}
         />
         <Input
           title={"전화번호 인증"}
@@ -67,6 +117,8 @@ export default function ResetPassword() {
           value={form.code}
           onChange={handleChange('code')}
           onClick={handleVerifySms}
+          error={errors.code}
+          notice={notices.code}
         />
         <Input
           title={"새 비밀번호 입력"}
@@ -86,6 +138,7 @@ export default function ResetPassword() {
         />
       </div>
       <div className='mt-[75px]'>
+        {submitError && <p className="mb-3 text-sm text-red-500">{submitError}</p>}
         <Button title={"비밀번호 재설정"} main onClick={handleSubmit} />
       </div>
     </div>
