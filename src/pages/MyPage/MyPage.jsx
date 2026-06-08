@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Clipboard,
   Home,
+  ListChecks,
   LogOut,
   NotebookTabs,
   Plus,
@@ -411,6 +412,7 @@ export default function MyPage() {
 
             <section className="rounded-[22px] bg-white p-2 shadow-sm">
               <MenuButton icon={<CalendarClock size={25} />} label="대화 시간 예약" onClick={goSchedule} />
+              <MenuButton icon={<ListChecks size={25} />} label="대화 주제 관리" onClick={() => navigate("/scenarios")} />
               <MenuButton icon={<NotebookTabs size={25} />} label="등록메모리 관리" onClick={goMemory} />
             </section>
           </>

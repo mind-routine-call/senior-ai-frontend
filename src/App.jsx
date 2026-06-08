@@ -8,6 +8,7 @@ import ResetPassword from "./pages/Auth/ResetPassword";
 import Dashboard from "./pages/Dashboard/Index";
 import ScheduleManager from "./pages/Schedule/ScheduleManager";
 import ScheduleList from "./pages/Schedule/ScheduleList";
+import ScenarioManager from "./pages/Scenario/ScenarioManager";
 import NotificationCenter from "./pages/Notification/NotificationCenter";
 import MemoryList from "./pages/Memory/List";
 import MemoryWrite from "./pages/Memory/Write";
@@ -37,6 +38,7 @@ export default function App() {
                   <Route path="/schedule" element={<ScheduleManager />} />
                   <Route path="/schedule/:elderId" element={<ScheduleManager />} />
                   <Route path="/schedule/list/:elderId" element={<ScheduleList />} />
+                  <Route path="/scenarios" element={<ScenarioManager />} />
                   <Route path="/notification" element={<NotificationCenter />} />
                   <Route path="/notification/:elderId" element={<NotificationCenter />} />
                   <Route path="/memory" element={<MemoryList />} />
