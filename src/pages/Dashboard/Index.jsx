@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { ChevronRight, MessageCircle, UserRound } from "lucide-react";
+import { Activity, ChevronRight, Loader2, MessageCircle, UserRound } from "lucide-react";
 import { getAccessToken } from "../../utils/authSession";
 import {
   CartesianGrid,
@@ -60,6 +60,11 @@ const getRiskLabel = (riskLevel) => {
   return riskLevel;
 };
 
+const buildAuthConfig = () => {
+  const token = getAccessToken();
+  return token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+};
+
 export default function Dashboard() {
   const { elderId: routeElderId } = useParams();
   const navigate = useNavigate();
@@ -69,6 +74,8 @@ export default function Dashboard() {
   const [chatsData, setChatsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisMessage, setAnalysisMessage] = useState("");
 
   const [eldersList, setEldersList] = useState([]);
   const [activeElderId, setActiveElderId] = useState(() => {
@@ -85,8 +92,7 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchEldersList = async () => {
       try {
-        const token = getAccessToken();
-        const config = token ? { headers: { Authorization: `Bearer ${token}` } } : undefined;
+        const config = buildAuthConfig();
 
         const res = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, config);
 
@@ -143,10 +149,7 @@ export default function Dashboard() {
       setErrorMessage("");
 
       try {
-        const token = getAccessToken();
-        const config = token
-          ? { headers: { Authorization: `Bearer ${token}` } }
-          : undefined;
+        const config = buildAuthConfig();
 
         const [summaryRes, chartsRes, chatsRes] = await Promise.all([
           axios.get(
@@ -185,6 +188,59 @@ export default function Dashboard() {
 
     fetchDashboardData();
   }, [activeElderId]);
+
+  const refreshDashboardData = async () => {
+    if (!activeElderId) return;
+
+    const config = buildAuthConfig();
+    const [summaryRes, chartsRes, chatsRes] = await Promise.all([
+      axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/summary`, config),
+      axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/charts`, config),
+      axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/chats`, config),
+    ]);
+
+    if (summaryRes.data?.isSuccess || summaryRes.data?.success) {
+      setSummaryData(summaryRes.data.result);
+    }
+    if (chartsRes.data?.isSuccess || chartsRes.data?.success) {
+      setChartsData(chartsRes.data.result);
+    }
+    if (chatsRes.data?.isSuccess || chatsRes.data?.success) {
+      setChatsData(chatsRes.data.result || []);
+    }
+  };
+
+  const handleEvaluateLatestChat = async () => {
+    const targetChat = chatsData.find((chat) => Number(chat.turn_count || 0) > 0);
+
+    if (!targetChat) {
+      setAnalysisMessage("분석할 대화 기록이 아직 없습니다.");
+      return;
+    }
+
+    try {
+      setIsAnalyzing(true);
+      setAnalysisMessage("");
+
+      const response = await axios.post(
+        `${API_BASE_URL}/api/v1/analysis/evaluate`,
+        { call_id: targetChat.call_id },
+        buildAuthConfig(),
+      );
+
+      if (!(response.data?.isSuccess || response.data?.success)) {
+        throw new Error(response.data?.message || "분석 실행에 실패했습니다.");
+      }
+
+      await refreshDashboardData();
+      setAnalysisMessage("최근 대화 분석 결과가 대시보드에 반영되었습니다.");
+    } catch (error) {
+      console.error("인지평가 실행 실패", error);
+      setAnalysisMessage(error.response?.data?.message || "분석 실행 중 오류가 발생했습니다.");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const elder = summaryData?.elder || {};
   const latestAssessment = summaryData?.latest_assessment || {};
@@ -329,6 +385,34 @@ export default function Dashboard() {
             최근 7일 기준
           </p>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+            <Activity size={23} strokeWidth={2.5} />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-base font-extrabold text-gray-900">인지평가 실행</h2>
+            <p className="mt-1 text-sm font-semibold leading-5 text-gray-500">
+              최근 저장된 대화를 분석해 점수와 리포트 요약을 갱신합니다.
+            </p>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={handleEvaluateLatestChat}
+          disabled={isAnalyzing}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-base font-black text-white shadow-sm disabled:opacity-60"
+        >
+          {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Activity size={20} strokeWidth={2.5} />}
+          {isAnalyzing ? "분석 중" : "최근 대화 분석하기"}
+        </button>
+        {analysisMessage && (
+          <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-bold leading-6 text-indigo-700">
+            {analysisMessage}
+          </p>
+        )}
       </section>
 
       <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
