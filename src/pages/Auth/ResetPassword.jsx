@@ -95,12 +95,12 @@ export default function ResetPassword() {
   }
 
   return (
-    <div>
-      <button className='mt-[46px]' onClick={() => navigate(-1)}>
+    <main className="auth-page auth-page--form auth-page--reset">
+      <button className="auth-back-button" onClick={() => navigate(-1)} aria-label="뒤로가기">
         <img src={back} alt="" />
       </button>
       <h1 className='mt-6 font-semibold text-[22px]'>비밀번호 재설정</h1>
-      <div className='mt-14 flex flex-col gap-8'>
+      <div className='mt-9 flex flex-col gap-5'>
         <Input
           title={"전화번호 입력"}
           placeholder={"전화번호를 입력해주세요"}
@@ -137,7 +137,7 @@ export default function ResetPassword() {
           error={errors.newPasswordConfirm}
         />
       </div>
-      <div className='mt-[75px]'>
+      <div className="auth-reset-action">
         {submitError && (
           <p className="mb-3 rounded-xl bg-[#FFF3EE] px-3 py-2 text-[13px] font-semibold text-[#FF6E61]">
             {submitError}
@@ -145,6 +145,6 @@ export default function ResetPassword() {
         )}
         <Button title={"비밀번호 재설정"} main onClick={handleSubmit} />
       </div>
-    </div>
+    </main>
   )
 }

@@ -38,19 +38,19 @@ export default function Login() {
   }
 
   return (
-    <div>
-      <button className='mt-[46px]' onClick={() => navigate(-1)}>
+    <main className="auth-page auth-page--form">
+      <button className="auth-back-button" onClick={() => navigate(-1)} aria-label="뒤로가기">
         <img src={back} alt="" />
       </button>
       <h1 className='mt-6 font-semibold text-[22px]'>로그인</h1>
-      <div className='mt-14 flex flex-col gap-8'>
+      <div className='mt-12 flex flex-col gap-7'>
         <Input title={"전화번호 입력"} placeholder={"전화번호를 입력해주세요"} value={form.phone} onChange={handleChange('phone')} />
         <Input title={"비밀번호 입력"} placeholder={"비밀번호를 입력해주세요"} type="password" value={form.password} onChange={handleChange('password')} />
       </div>
-      <div className='mt-[300px] flex flex-col gap-4 pb-[54px]'>
+      <div className="auth-bottom-actions">
         <Button title={"로그인"} main onClick={handleLogin} />
         <Button title={"비밀번호 재설정"} onClick={() => navigate('/reset-password')} />
       </div>
-    </div>
+    </main>
   )
 }
