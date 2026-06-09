@@ -4,7 +4,7 @@ import ElderNav from "../components/nav/ElderNav";
 import { getStoredRole } from "../utils/authSession";
 
 const GUARDIAN_PATHS = ["/dashboard", "/schedule", "/notification", "/memory"];
-const ELDER_PATHS = ["/elder-home", "/elder-chat", "/mypage"];
+const ELDER_PATHS = ["/elder-home", "/elder-chat", "/chat", "/mypage"];
 
 function getNavType(pathname) {
   const role = getStoredRole();
@@ -16,10 +16,15 @@ function getNavType(pathname) {
 export default function AppLayout() {
   const { pathname } = useLocation();
   const navType = getNavType(pathname);
+  const isFixedElderChat = ["/elder-chat", "/chat"].some((path) => pathname.startsWith(path));
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="app-scroll-region min-h-0 flex-1 overflow-y-auto px-4">
+      <div
+        className={`app-scroll-region min-h-0 flex-1 px-4 ${
+          isFixedElderChat ? "app-scroll-region--fixed overflow-hidden" : "overflow-y-auto"
+        }`}
+      >
         <Outlet />
       </div>
       {navType === "guardian" && <GuardianNav />}

@@ -18,7 +18,13 @@ import {
   saveUtteranceAnalysis,
   startChatSession,
 } from '../../api/elderChat'
-import { analyzeRecognizedText, getSpeechRecognition, speakText, stopSpeaking } from './speechUtils'
+import {
+  analyzeRecognizedText,
+  getSpeechRecognition,
+  mergeRecognitionResults,
+  speakText,
+  stopSpeaking,
+} from './speechUtils'
 import { calmReplies, starterQuestions } from './chatMockData'
 import ChatFace from './ChatFace'
 import './elderChat.css'
@@ -70,6 +76,8 @@ export default function ElderChat() {
   const finalTextRef = useRef('')
   const confidenceRef = useRef(0.86)
   const recognitionErrorRef = useRef(false)
+  const submittingRef = useRef(false)
+  const messageEndRef = useRef(null)
   const turnOrderRef = useRef(1)
   const [callId, setCallId] = useState(null)
   const [turnIndex, setTurnIndex] = useState(0)
@@ -85,6 +93,14 @@ export default function ElderChat() {
     [location.state],
   )
   const speechSupported = useMemo(() => Boolean(getSpeechRecognition()), [])
+
+  useEffect(() => {
+    const frameId = window.requestAnimationFrame(() => {
+      messageEndRef.current?.scrollIntoView({ block: 'end' })
+    })
+
+    return () => window.cancelAnimationFrame(frameId)
+  }, [messages, liveText, mode])
 
   useEffect(() => {
     let isMounted = true
@@ -155,6 +171,8 @@ export default function ElderChat() {
   }
 
   const handleRecognizedAnswer = async (answer, confidence = 0.86) => {
+    if (submittingRef.current) return
+
     const trimmed = answer.trim()
     if (!trimmed) {
       setMode('retry')
@@ -162,6 +180,7 @@ export default function ElderChat() {
       return
     }
 
+    submittingRef.current = true
     const responseDelayMs = listenStartedAtRef.current
       ? Date.now() - listenStartedAtRef.current
       : 0
@@ -176,11 +195,15 @@ export default function ElderChat() {
     setLiveText('')
     setMode('thinking')
 
-    const turn = await persistTurn({ answer: trimmed, confidence, responseDelayMs })
-    const reply = turn?.ai_response_text || fallbackReply
-    setTurnIndex((prev) => prev + 1)
-    setMode('idle')
-    window.setTimeout(() => appendAiMessage(reply), 500)
+    try {
+      const turn = await persistTurn({ answer: trimmed, confidence, responseDelayMs })
+      const reply = turn?.ai_response_text || fallbackReply
+      setTurnIndex((prev) => prev + 1)
+      setMode('idle')
+      window.setTimeout(() => appendAiMessage(reply), 500)
+    } finally {
+      submittingRef.current = false
+    }
   }
 
   const startListening = () => {
@@ -192,7 +215,12 @@ export default function ElderChat() {
       return
     }
 
-    recognitionRef.current?.abort?.()
+    if (recognitionRef.current) {
+      recognitionRef.current.onend = null
+      recognitionRef.current.onerror = null
+      recognitionRef.current.abort?.()
+    }
+
     const recognition = new Recognition()
     recognition.lang = 'ko-KR'
     recognition.interimResults = true
@@ -209,16 +237,11 @@ export default function ElderChat() {
     setMode('listening')
 
     recognition.onresult = (event) => {
-      const transcript = Array.from(event.results)
-        .map((result) => result[0]?.transcript || '')
-        .join('')
-      const latest = event.results[event.results.length - 1]
-      if (latest?.isFinal) {
-        finalTextRef.current = transcript
-        confidenceRef.current = latest[0]?.confidence || confidenceRef.current
-      }
-      liveTextRef.current = transcript
-      setLiveText(transcript)
+      const result = mergeRecognitionResults(event.results)
+      finalTextRef.current = result.finalText
+      liveTextRef.current = result.transcript
+      confidenceRef.current = result.confidence || confidenceRef.current
+      setLiveText(result.transcript)
     }
 
     recognition.onerror = () => {
@@ -228,6 +251,7 @@ export default function ElderChat() {
     }
 
     recognition.onend = () => {
+      recognitionRef.current = null
       if (recognitionErrorRef.current) return
 
       const capturedText = finalTextRef.current || liveTextRef.current
@@ -329,19 +353,19 @@ export default function ElderChat() {
               <p>{liveText}</p>
             </article>
           )}
+          {mode === 'retry' && (
+            <section className="retry-panel">
+              <MicOff size={30} strokeWidth={2.4} />
+              <p>{errorMessage}</p>
+              <button type="button" onClick={startListening}>
+                <RotateCcw size={22} strokeWidth={2.4} />
+                다시 말하기
+              </button>
+            </section>
+          )}
+          <div ref={messageEndRef} aria-hidden="true" />
         </div>
       </section>
-
-      {mode === 'retry' && (
-        <section className="retry-panel">
-          <MicOff size={30} strokeWidth={2.4} />
-          <p>{errorMessage}</p>
-          <button type="button" onClick={startListening}>
-            <RotateCcw size={22} strokeWidth={2.4} />
-            다시 말하기
-          </button>
-        </section>
-      )}
 
       <footer className="voice-controls">
         <button className="control-button" type="button" onClick={() => speakText(currentQuestion)}>

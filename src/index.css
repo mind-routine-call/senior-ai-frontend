@@ -28,6 +28,11 @@
     padding-bottom: clamp(0px, calc(12cqh - 21.735849cqw), 24px);
   }
 
+  .app-scroll-region--fixed {
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+
   .auth-page {
     display: flex;
     min-height: 100%;

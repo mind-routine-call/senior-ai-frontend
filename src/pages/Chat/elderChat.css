@@ -28,8 +28,11 @@
 }
 
 .elder-shell--chat {
+  height: 100%;
+  min-height: 0;
   padding: 0;
   gap: 0;
+  overflow: hidden;
   background: var(--surface);
 }
 
@@ -403,9 +406,12 @@
 }
 
 .chat-top-panel {
+  flex: 0 0 auto;
   padding: 1rem 1.25rem 1.3rem;
   background: var(--soft);
   border-bottom: 1px solid var(--line);
+  position: relative;
+  z-index: 2;
 }
 
 .chat-profile {
@@ -456,6 +462,7 @@
 .chat-conversation {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
   padding: 1rem 1.25rem 0.65rem;
   display: flex;
   flex-direction: column;
@@ -463,6 +470,8 @@
 }
 
 .status-pill {
+  flex: 0 0 auto;
+  margin-bottom: 0.75rem;
   min-height: 2.6rem;
   padding: 0 0.9rem;
   border-radius: 999px;
@@ -476,6 +485,7 @@
 
 .message-list {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
@@ -536,6 +546,7 @@
 }
 
 .retry-panel {
+  flex: 0 0 auto;
   padding: 1rem;
   border-radius: 1.25rem;
   background: var(--brand-soft);
@@ -567,9 +578,12 @@
 }
 
 .elder-shell--chat .voice-controls {
+  flex: 0 0 auto;
   padding: 0.85rem 1.25rem 1rem;
   border-top: 1px solid var(--line);
   background: var(--surface);
+  position: relative;
+  z-index: 2;
 }
 
 .control-button {

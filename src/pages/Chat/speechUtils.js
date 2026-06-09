@@ -86,6 +86,70 @@ export const stopSpeaking = () => {
   }
 }
 
+const normalizeTranscript = (value) => (
+  String(value || '')
+    .replace(/\s+/g, ' ')
+    .trim()
+)
+
+const collapseRecognitionRepetition = (value) => {
+  let text = normalizeTranscript(value)
+
+  for (let pass = 0; pass < 3; pass += 1) {
+    const collapsed = text
+      .replace(/([\p{L}\p{N}]{2,20}?)(?:\1)+/gu, '$1')
+      .replace(/\b([\p{L}\p{N}]+)(?:\s+\1){1,}\b/gu, '$1')
+
+    if (collapsed === text) break
+    text = collapsed
+  }
+
+  return normalizeTranscript(text)
+}
+
+const mergeTranscript = (baseValue, nextValue) => {
+  const base = collapseRecognitionRepetition(baseValue)
+  const next = collapseRecognitionRepetition(nextValue)
+
+  if (!base) return next
+  if (!next || base === next || base.endsWith(next)) return base
+  if (next.startsWith(base)) return next
+
+  const maxOverlap = Math.min(base.length, next.length)
+  for (let length = maxOverlap; length >= 2; length -= 1) {
+    if (base.slice(-length) === next.slice(0, length)) {
+      return collapseRecognitionRepetition(`${base}${next.slice(length)}`)
+    }
+  }
+
+  return collapseRecognitionRepetition(`${base} ${next}`)
+}
+
+export const mergeRecognitionResults = (results) => {
+  let finalText = ''
+  let interimText = ''
+  let confidence = 0
+
+  Array.from(results || []).forEach((result) => {
+    const transcript = result?.[0]?.transcript
+    if (!transcript) return
+
+    if (result.isFinal) {
+      finalText = mergeTranscript(finalText, transcript)
+      confidence = Math.max(confidence, Number(result[0]?.confidence) || 0)
+      return
+    }
+
+    interimText = mergeTranscript(interimText, transcript)
+  })
+
+  return {
+    finalText,
+    transcript: mergeTranscript(finalText, interimText),
+    confidence,
+  }
+}
+
 export const analyzeRecognizedText = ({ text, confidence = 0.9, responseDelayMs = 0 }) => {
   const normalized = text.replace(/[^\p{L}\p{N}\s]/gu, ' ').trim()
   const words = normalized.split(/\s+/).filter(Boolean)
