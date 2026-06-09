@@ -5,15 +5,28 @@ export const getSpeechRecognition = () => (
 const ELDER_SETTINGS_STORAGE_KEY = 'elderAudioDisplaySettings'
 const KOREAN_LOCALE_PREFIX = 'ko'
 const PREFERRED_VOICE_NAMES = [
-  ['natural', 80],
-  ['google', 55],
-  ['sunhi', 50],
-  ['suna', 50],
-  ['yuna', 45],
-  ['sora', 45],
-  ['heami', 40],
-  ['microsoft', 30],
-  ['samsung', 25],
+  ['natural', 150],
+  ['neural', 140],
+  ['premium', 120],
+  ['enhanced', 100],
+  ['sunhi', 95],
+  ['sun-hi', 95],
+  ['yuna', 90],
+  ['suna', 85],
+  ['sora', 80],
+  ['heami', 75],
+  ['female', 65],
+  ['여성', 65],
+  ['google', 40],
+  ['microsoft', 25],
+  ['samsung', 10],
+]
+const DISFAVORED_VOICE_NAMES = [
+  ['male', -120],
+  ['남성', -120],
+  ['injoon', -90],
+  ['hyunsu', -90],
+  ['minsu', -90],
 ]
 
 let availableVoices = []
@@ -45,10 +58,13 @@ export const scoreKoreanVoice = (voice) => {
   if (!language.startsWith(KOREAN_LOCALE_PREFIX)) return -1
 
   let score = language === 'ko-kr' ? 120 : 100
-  if (voice.default) score += 8
-  if (voice.localService === false) score += 12
+  if (voice.localService === false) score += 28
 
   PREFERRED_VOICE_NAMES.forEach(([keyword, weight]) => {
+    if (name.includes(keyword)) score += weight
+  })
+
+  DISFAVORED_VOICE_NAMES.forEach(([keyword, weight]) => {
     if (name.includes(keyword)) score += weight
   })
 
@@ -74,8 +90,8 @@ export const speakText = (text) => {
   const utterance = new SpeechSynthesisUtterance(text)
   utterance.lang = 'ko-KR'
   utterance.voice = selectKoreanVoice()
-  utterance.rate = 0.72 + (speechSpeed / 100) * 0.36
-  utterance.pitch = 1
+  utterance.rate = 0.84 + (speechSpeed / 100) * 0.24
+  utterance.pitch = 1.1
   utterance.volume = volume / 100
   window.speechSynthesis.speak(utterance)
 }
