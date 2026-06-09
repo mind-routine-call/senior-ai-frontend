@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { ChevronRight, Ear, Mic, Volume2 } from 'lucide-react'
 import { completeElderOnboarding } from '../../api/elderChat'
@@ -26,7 +26,14 @@ const steps = [
 export default function ElderOnboarding() {
   const navigate = useNavigate()
   const [step, setStep] = useState(0)
+  const [transitioning, setTransitioning] = useState(false)
+  const [leaving, setLeaving] = useState(false)
+  const transitionTimerRef = useRef(null)
   const CurrentIcon = steps[step].icon
+
+  useEffect(() => () => {
+    window.clearTimeout(transitionTimerRef.current)
+  }, [])
 
   const finishOnboarding = async () => {
     localStorage.setItem('elderOnboardingDone', 'true')
@@ -39,22 +46,34 @@ export default function ElderOnboarding() {
   }
 
   const handleNext = () => {
+    if (transitioning || leaving) return
+
     if (step < steps.length - 1) {
-      setStep((prev) => prev + 1)
+      setTransitioning(true)
+      transitionTimerRef.current = window.setTimeout(() => {
+        setStep((prev) => prev + 1)
+        setTransitioning(false)
+      }, 220)
       return
     }
-    finishOnboarding()
+
+    setLeaving(true)
+    transitionTimerRef.current = window.setTimeout(finishOnboarding, 340)
   }
 
   return (
-    <main className="elder-shell elder-shell--soft">
+    <main className={`elder-shell elder-shell--soft elder-shell--onboarding ${leaving ? 'elder-shell--onboarding-leaving' : ''}`}>
       <section className="onboarding-hero">
         <ChatFace />
         <p className="eyebrow">처음 오셨나요</p>
         <h1>제가 곁에서 천천히 도와드릴게요</h1>
       </section>
 
-      <section className="onboarding-panel" aria-live="polite">
+      <section
+        key={step}
+        className={`onboarding-panel ${transitioning ? 'onboarding-panel--exiting' : ''}`}
+        aria-live="polite"
+      >
         <div className="onboarding-icon">
           <CurrentIcon size={34} strokeWidth={2.2} />
         </div>
@@ -68,7 +87,12 @@ export default function ElderOnboarding() {
         ))}
       </div>
 
-      <button className="primary-action" type="button" onClick={handleNext}>
+      <button
+        className="primary-action"
+        type="button"
+        onClick={handleNext}
+        disabled={transitioning || leaving}
+      >
         {step === steps.length - 1 ? '시작하기' : '다음으로'}
         <ChevronRight size={26} strokeWidth={2.5} />
       </button>
