@@ -3,8 +3,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import {
   CalendarClock,
+  Check,
   ChevronRight,
   Clipboard,
+  Film,
   Home,
   ListChecks,
   LogOut,
@@ -16,6 +18,7 @@ import {
 
 import { clearAuthSession, getAccessToken, getStoredRole } from "../../utils/authSession";
 import { getElderHome } from "../../api/elderChat";
+import { isOpeningDisabled, setOpeningDisabled } from "../../utils/openingPreference";
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 const ELDER_SETTINGS_STORAGE_KEY = "elderAudioDisplaySettings";
@@ -77,6 +80,7 @@ export default function MyPage() {
   const [speechSpeed, setSpeechSpeed] = useState(() => readSettingNumber(savedSettings, "speechSpeed", 50));
   const [volume, setVolume] = useState(() => readSettingNumber(savedSettings, "volume", 70));
   const [fontSize, setFontSize] = useState(() => savedSettings.fontSize || "아주 크게");
+  const [openingDisabled, setOpeningDisabledState] = useState(isOpeningDisabled);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [profileSaving, setProfileSaving] = useState(false);
   const [profileForm, setProfileForm] = useState({
@@ -209,6 +213,11 @@ export default function MyPage() {
     } catch {
       alert("브라우저에서 복사를 지원하지 않습니다.");
     }
+  };
+
+  const handleOpeningDisabledChange = (disabled) => {
+    setOpeningDisabledState(disabled);
+    setOpeningDisabled(disabled);
   };
 
   const handleLogout = async () => {
@@ -462,6 +471,12 @@ export default function MyPage() {
         )}
 
         <section className="rounded-2xl bg-[#f6f6f6] p-2">
+          <MenuCheckbox
+            icon={<Film size={25} />}
+            label="오프닝 끄기"
+            checked={openingDisabled}
+            onChange={handleOpeningDisabledChange}
+          />
           <MenuButton
             icon={<UserRound size={25} />}
             label="개인정보 변경"
@@ -613,6 +628,33 @@ function MenuButton({ icon, label, onClick, danger = false }) {
       </span>
       <ChevronRight size={22} strokeWidth={2.5} className="text-gray-400" />
     </button>
+  );
+}
+
+function MenuCheckbox({ icon, label, checked, onChange }) {
+  return (
+    <label className="flex w-full cursor-pointer items-center justify-between rounded-2xl px-4 py-4 text-left text-gray-900 transition hover:bg-white active:scale-[0.99]">
+      <span className="flex items-center gap-3 text-lg font-semibold">
+        <span className="text-[#FF6E61]">{icon}</span>
+        {label}
+      </span>
+      <input
+        type="checkbox"
+        checked={checked}
+        onChange={(event) => onChange(event.target.checked)}
+        className="sr-only"
+      />
+      <span
+        className={`flex h-[22px] w-[22px] items-center justify-center rounded-md border-2 transition ${
+          checked
+            ? "border-[#FF6E61] bg-[#FF6E61] text-white"
+            : "border-gray-300 bg-white text-transparent"
+        }`}
+        aria-hidden="true"
+      >
+        <Check size={16} strokeWidth={3} />
+      </span>
+    </label>
   );
 }
 

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import logo from '../../assets/img/mind_routine_logo.svg'
 import Button from "../../components/Button"
+import { isOpeningDisabled } from '../../utils/openingPreference'
 
 const OPENING_DURATION_MS = 5700
 
@@ -24,9 +25,11 @@ function StaggeredText({ children, className = '' }) {
 
 const Index = () => {
   const navigate = useNavigate()
-  const [openingComplete, setOpeningComplete] = useState(false)
+  const [openingComplete, setOpeningComplete] = useState(isOpeningDisabled)
 
   useEffect(() => {
+    if (openingComplete) return undefined
+
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     const timerId = window.setTimeout(
       () => setOpeningComplete(true),
@@ -34,7 +37,7 @@ const Index = () => {
     )
 
     return () => window.clearTimeout(timerId)
-  }, [])
+  }, [openingComplete])
 
   const handleLoginClick = () => {
     navigate('/login')
