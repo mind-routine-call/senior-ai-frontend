@@ -19,7 +19,7 @@ export default function AppLayout() {
 
   return (
     <div className="flex h-full w-full flex-col">
-      <div className="min-h-0 flex-1 overflow-y-auto px-4">
+      <div className="app-scroll-region min-h-0 flex-1 overflow-y-auto px-4">
         <Outlet />
       </div>
       {navType === "guardian" && <GuardianNav />}

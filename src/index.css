@@ -4,6 +4,90 @@
   --font-sans: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
 }
 
+@layer components {
+  .app-stage {
+    display: flex;
+    min-height: 100dvh;
+    width: 100%;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .app-frame {
+    container-type: size;
+    position: relative;
+    height: 100dvh;
+    width: 100%;
+    max-width: 393px;
+    overflow: hidden;
+    background: #ffffff;
+  }
+
+  .app-scroll-region {
+    padding-top: clamp(0px, calc(12cqh - 21.735849cqw), 24px);
+    padding-bottom: clamp(0px, calc(12cqh - 21.735849cqw), 24px);
+  }
+
+  .auth-page {
+    display: flex;
+    min-height: 100%;
+    flex-direction: column;
+  }
+
+  .auth-page--welcome {
+    padding-bottom: clamp(28px, 6cqh, 52px);
+  }
+
+  .welcome-logo {
+    display: flex;
+    min-height: 220px;
+    flex: 1;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .welcome-actions,
+  .auth-bottom-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .auth-page--form {
+    padding-top: clamp(28px, 5.4cqh, 46px);
+    padding-bottom: clamp(24px, 5cqh, 44px);
+  }
+
+  .auth-back-button {
+    display: flex;
+    min-height: 32px;
+    width: 32px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .auth-bottom-actions {
+    margin-top: auto;
+  }
+
+  .auth-reset-action {
+    margin-top: auto;
+    padding-top: 28px;
+  }
+
+  @media (min-width: 640px) {
+    .app-stage {
+      padding: 1rem;
+    }
+
+    .app-frame {
+      height: min(852px, calc(100dvh - 2rem));
+      border-radius: 40px;
+      box-shadow: 0 4px 32px rgba(0, 0, 0, 0.18);
+    }
+  }
+}
+
 @layer base {
   html,
   body,
