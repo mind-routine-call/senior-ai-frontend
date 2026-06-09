@@ -16,12 +16,19 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-height: 100vh;
-    background-color: #e5e7eb;
+    min-height: 100dvh;
+    overflow: hidden;
+    background-color: #ffffff;
     font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", sans-serif;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (min-width: 640px) {
+    body {
+      background-color: #e5e7eb;
+    }
   }
 
   * {

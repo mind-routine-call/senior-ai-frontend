@@ -21,8 +21,8 @@ import MyPage from "./pages/MyPage/MyPage";
 
 export default function App() {
   return (
-    <div className="flex h-screen w-screen items-center justify-center">
-      <div className="relative h-[852px] w-[393px] shrink-0 overflow-hidden rounded-[40px] bg-white shadow-[0_4px_32px_rgba(0,0,0,0.18)]">
+    <div className="flex min-h-[100dvh] w-full items-center justify-center sm:p-4">
+      <div className="relative h-[100dvh] w-full max-w-[393px] overflow-hidden bg-white sm:h-[min(852px,calc(100dvh-2rem))] sm:rounded-[40px] sm:shadow-[0_4px_32px_rgba(0,0,0,0.18)]">
         <div className="h-full w-full">
           <BrowserRouter>
             <Routes>
