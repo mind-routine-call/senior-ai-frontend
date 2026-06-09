@@ -4,7 +4,7 @@ import ElderNav from "../components/nav/ElderNav";
 import { getStoredRole } from "../utils/authSession";
 
 const GUARDIAN_PATHS = ["/dashboard", "/schedule", "/notification", "/memory"];
-const ELDER_PATHS = ["/elder-home", "/elder-chat"];
+const ELDER_PATHS = ["/elder-home", "/elder-chat", "/mypage"];
 
 function getNavType(pathname) {
   const role = getStoredRole();

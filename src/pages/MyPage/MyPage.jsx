@@ -326,14 +326,16 @@ export default function MyPage() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={goHome}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f6f6f6] text-[#FF6E61]"
-          aria-label="홈으로 이동"
-        >
-          <Home size={22} strokeWidth={2.5} />
-        </button>
+        {isGuardian && (
+          <button
+            type="button"
+            onClick={goHome}
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f6f6f6] text-[#FF6E61]"
+            aria-label="홈으로 이동"
+          >
+            <Home size={22} strokeWidth={2.5} />
+          </button>
+        )}
       </header>
 
       <main className="flex flex-col gap-4 pb-8">
