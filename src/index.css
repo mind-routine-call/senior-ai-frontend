@@ -43,6 +43,101 @@
     padding-bottom: clamp(28px, 6cqh, 52px);
   }
 
+  .auth-page--welcome-waiting > :not(.auth-opening) {
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .auth-page--welcome-ready {
+    animation: welcome-content-enter 700ms ease-out both;
+  }
+
+  .auth-opening {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    overflow: hidden;
+    background: #ffffff;
+    color: #8d8d92;
+    animation: opening-overlay-exit 5.7s ease-in-out both;
+  }
+
+  .opening-scene {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1.5rem;
+    opacity: 0;
+  }
+
+  .opening-scene--first {
+    animation: opening-scene-first 1.8s ease-in-out both;
+  }
+
+  .opening-scene--second {
+    animation: opening-scene-second 1.9s ease-in-out 1.65s both;
+  }
+
+  .opening-scene--final {
+    animation: opening-scene-final 2.35s ease-in-out 3.3s both;
+  }
+
+  .opening-staggered-text {
+    display: inline-flex;
+    max-width: 100%;
+    justify-content: center;
+    white-space: nowrap;
+    font-size: 1.38rem;
+    font-weight: 400;
+    line-height: 1.5;
+    letter-spacing: 0;
+  }
+
+  .opening-character {
+    display: inline-block;
+    opacity: 0;
+    transform: translateY(-0.85rem);
+    animation: opening-character-enter 520ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--character-index) * 32ms + 110ms);
+  }
+
+  .opening-scene--second .opening-character {
+    animation-delay: calc(1.78s + var(--character-index) * 34ms);
+  }
+
+  .opening-final-copy {
+    width: min(100%, 21rem);
+    transform: translateY(-0.2rem);
+  }
+
+  .opening-final-wish {
+    display: flex;
+    width: max-content;
+    max-width: calc(100% - 1.6rem);
+    margin-right: auto;
+    font-size: 1.3rem;
+  }
+
+  .opening-final-title {
+    display: flex;
+    width: max-content;
+    margin-top: 1.15rem;
+    margin-left: auto;
+    color: #ff6e61;
+    font-size: 2.15rem;
+    font-weight: 500;
+  }
+
+  .opening-scene--final .opening-final-wish .opening-character {
+    animation-delay: calc(3.4s + var(--character-index) * 36ms);
+  }
+
+  .opening-scene--final .opening-final-title .opening-character {
+    animation-delay: calc(3.92s + var(--character-index) * 48ms);
+  }
+
   .welcome-logo {
     display: flex;
     min-height: 220px;
@@ -78,6 +173,93 @@
   .auth-reset-action {
     margin-top: auto;
     padding-top: 28px;
+  }
+
+  @keyframes opening-character-enter {
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes opening-scene-first {
+    0%,
+    8% {
+      opacity: 0;
+    }
+
+    18%,
+    72% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes opening-scene-second {
+    0%,
+    8% {
+      opacity: 0;
+    }
+
+    18%,
+    72% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes opening-scene-final {
+    0%,
+    8% {
+      opacity: 0;
+    }
+
+    18%,
+    84% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes opening-overlay-exit {
+    0%,
+    94% {
+      opacity: 1;
+    }
+
+    100% {
+      opacity: 0;
+    }
+  }
+
+  @keyframes welcome-content-enter {
+    from {
+      opacity: 0;
+      transform: translateY(0.5rem);
+    }
+
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .auth-opening,
+    .opening-scene,
+    .opening-character,
+    .auth-page--welcome-ready {
+      animation: none;
+    }
   }
 
   @media (min-width: 640px) {
