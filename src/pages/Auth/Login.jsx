@@ -29,6 +29,12 @@ export default function Login() {
         return
       }
 
+      if (savedRole === 'elder') {
+        localStorage.removeItem('elderOnboardingDone')
+        navigate('/elder-onboarding', { replace: true })
+        return
+      }
+
       navigate(getDefaultPathForRole(savedRole), { replace: true })
     } catch (error) {
       const message =

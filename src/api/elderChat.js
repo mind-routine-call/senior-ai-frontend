@@ -1,9 +1,16 @@
 import axios from 'axios'
-import { getAccessToken } from '../utils/authSession'
+import {
+  clearAuthSession,
+  getAccessToken,
+  getRefreshToken,
+  saveAccessToken,
+} from '../utils/authSession'
 
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000'
 const client = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000',
+  baseURL: API_BASE_URL,
 })
+let refreshRequest = null
 
 client.interceptors.request.use((config) => {
   const token = getAccessToken()
@@ -12,6 +19,47 @@ client.interceptors.request.use((config) => {
   }
   return config
 })
+
+client.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config
+    const refreshToken = getRefreshToken()
+
+    if (error.response?.status !== 401 || originalRequest?._retry || !refreshToken) {
+      return Promise.reject(error)
+    }
+
+    originalRequest._retry = true
+
+    try {
+      if (!refreshRequest) {
+        refreshRequest = axios
+          .post(`${API_BASE_URL}/api/v1/auth/refresh`, { refreshToken })
+          .then((response) => response.data?.result?.accessToken)
+          .finally(() => {
+            refreshRequest = null
+          })
+      }
+
+      const accessToken = await refreshRequest
+      if (!accessToken) {
+        throw new Error('Access Token 재발급 응답이 없습니다.')
+      }
+
+      saveAccessToken(accessToken)
+      originalRequest.headers = originalRequest.headers || {}
+      originalRequest.headers.Authorization = `Bearer ${accessToken}`
+      return client(originalRequest)
+    } catch (refreshError) {
+      clearAuthSession()
+      if (typeof window !== 'undefined') {
+        window.location.replace('/login')
+      }
+      return Promise.reject(refreshError)
+    }
+  },
+)
 
 const unwrapResult = (response) => response.data?.result ?? response.data
 
