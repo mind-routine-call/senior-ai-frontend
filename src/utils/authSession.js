@@ -19,6 +19,16 @@ export function getAccessToken() {
   return localStorage.getItem("accessToken") || localStorage.getItem("token");
 }
 
+export function getRefreshToken() {
+  if (typeof window === "undefined") return null;
+  return localStorage.getItem("refreshToken");
+}
+
+export function saveAccessToken(accessToken) {
+  if (typeof window === "undefined" || !accessToken) return;
+  localStorage.setItem("accessToken", accessToken);
+}
+
 export function getStoredRole() {
   if (typeof window === "undefined") return null;
   return normalizeRole(
