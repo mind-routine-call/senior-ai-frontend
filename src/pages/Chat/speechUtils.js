@@ -2,14 +2,81 @@ export const getSpeechRecognition = () => (
   window.SpeechRecognition || window.webkitSpeechRecognition || null
 )
 
+const ELDER_SETTINGS_STORAGE_KEY = 'elderAudioDisplaySettings'
+const KOREAN_LOCALE_PREFIX = 'ko'
+const PREFERRED_VOICE_NAMES = [
+  ['natural', 80],
+  ['google', 55],
+  ['sunhi', 50],
+  ['suna', 50],
+  ['yuna', 45],
+  ['sora', 45],
+  ['heami', 40],
+  ['microsoft', 30],
+  ['samsung', 25],
+]
+
+let availableVoices = []
+
+const refreshVoices = () => {
+  if (!('speechSynthesis' in window)) return
+  availableVoices = window.speechSynthesis.getVoices()
+}
+
+if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+  refreshVoices()
+  window.speechSynthesis.addEventListener('voiceschanged', refreshVoices)
+}
+
+const readAudioSettings = () => {
+  try {
+    return JSON.parse(localStorage.getItem(ELDER_SETTINGS_STORAGE_KEY) || '{}')
+  } catch {
+    return {}
+  }
+}
+
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value))
+
+export const scoreKoreanVoice = (voice) => {
+  const language = String(voice?.lang || '').toLowerCase()
+  const name = String(voice?.name || '').toLowerCase()
+
+  if (!language.startsWith(KOREAN_LOCALE_PREFIX)) return -1
+
+  let score = language === 'ko-kr' ? 120 : 100
+  if (voice.default) score += 8
+  if (voice.localService === false) score += 12
+
+  PREFERRED_VOICE_NAMES.forEach(([keyword, weight]) => {
+    if (name.includes(keyword)) score += weight
+  })
+
+  return score
+}
+
+export const selectKoreanVoice = (voices = availableVoices) => (
+  [...voices]
+    .map((voice) => ({ voice, score: scoreKoreanVoice(voice) }))
+    .filter(({ score }) => score >= 0)
+    .sort((a, b) => b.score - a.score)[0]?.voice || null
+)
+
 export const speakText = (text) => {
   if (!('speechSynthesis' in window)) return
+
+  refreshVoices()
+  const settings = readAudioSettings()
+  const speechSpeed = clamp(Number(settings.speechSpeed ?? 50), 0, 100)
+  const volume = clamp(Number(settings.volume ?? 70), 0, 100)
 
   window.speechSynthesis.cancel()
   const utterance = new SpeechSynthesisUtterance(text)
   utterance.lang = 'ko-KR'
-  utterance.rate = 0.88
-  utterance.pitch = 0.95
+  utterance.voice = selectKoreanVoice()
+  utterance.rate = 0.72 + (speechSpeed / 100) * 0.36
+  utterance.pitch = 1
+  utterance.volume = volume / 100
   window.speechSynthesis.speak(utterance)
 }
 
