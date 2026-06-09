@@ -9,7 +9,6 @@ import {
   ListChecks,
   LogOut,
   NotebookTabs,
-  Plus,
   UserRound,
   Volume2,
   X,
@@ -344,19 +343,9 @@ export default function MyPage() {
             <section className="rounded-2xl bg-[#f6f6f6] p-4">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-lg font-semibold">연결된 어르신</h2>
-                <div className="flex items-center gap-2">
-                  <span className="rounded-full bg-[#FFF3EE] px-3 py-1 text-sm font-bold text-[#FF6E61]">
-                    {elderList.length}명
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => navigate("/guardian/elders/register")}
-                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF6E61] text-white shadow-sm"
-                    aria-label="새 어르신 등록"
-                  >
-                    <Plus size={20} strokeWidth={3} />
-                  </button>
-                </div>
+                <span className="rounded-full bg-[#FFF3EE] px-3 py-1 text-sm font-bold text-[#FF6E61]">
+                  {elderList.length}명
+                </span>
               </div>
 
               {elderList.length > 0 ? (
@@ -383,15 +372,19 @@ export default function MyPage() {
               ) : (
                 <div className="rounded-2xl bg-white p-4 text-center">
                   <p className="text-sm font-bold text-gray-500">
-                    연결된 어르신 정보가 없습니다.
+                    아직 연결된 어르신 계정이 없습니다.
                   </p>
                   <button
                     type="button"
-                    onClick={() => navigate("/guardian/elders/register")}
+                    onClick={handleCopyCode}
+                    disabled={!inviteCode}
                     className="mt-3 rounded-2xl bg-[#FF6E61] px-5 py-3 text-sm font-semibold text-white shadow-sm"
                   >
-                    새 어르신 등록
+                    초대코드 복사
                   </button>
+                  <p className="mt-3 text-xs font-semibold leading-5 text-gray-400">
+                    어르신이 본인 계정으로 가입할 때 초대코드를 입력하면 자동으로 연결됩니다.
+                  </p>
                 </div>
               )}
             </section>
