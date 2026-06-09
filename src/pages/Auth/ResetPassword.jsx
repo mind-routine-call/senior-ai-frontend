@@ -138,7 +138,11 @@ export default function ResetPassword() {
         />
       </div>
       <div className='mt-[75px]'>
-        {submitError && <p className="mb-3 text-sm text-red-500">{submitError}</p>}
+        {submitError && (
+          <p className="mb-3 rounded-xl bg-[#FFF3EE] px-3 py-2 text-[13px] font-semibold text-[#FF6E61]">
+            {submitError}
+          </p>
+        )}
         <Button title={"비밀번호 재설정"} main onClick={handleSubmit} />
       </div>
     </div>

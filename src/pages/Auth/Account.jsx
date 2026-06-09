@@ -205,8 +205,12 @@ export default function Account({ type = "guardian" }) {
                     />
                 ))}
             </div>
-            <div className="mt-[38px] pb-4">
-                {submitError && <p className="mb-3 text-sm text-red-500">{submitError}</p>}
+            <div className="mt-[38px] pb-16">
+                {submitError && (
+                    <p className="mb-3 rounded-xl bg-[#FFF3EE] px-3 py-2 text-[13px] font-semibold text-[#FF6E61]">
+                        {submitError}
+                    </p>
+                )}
                 <Button title={"회원가입"} main onClick={handleSubmit} />
             </div>
         </div>

@@ -239,20 +239,20 @@ export default function ScenarioManager() {
   };
 
   return (
-    <main className="flex min-h-full flex-col bg-[#f6f8fb] px-5 py-6 font-sans text-gray-900">
+    <main className="flex min-h-full flex-col bg-white py-6 font-sans text-gray-900">
       <header className="mb-5 flex items-start justify-between gap-3">
         <button
           type="button"
           onClick={() => navigate("/mypage")}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-gray-800 shadow-sm"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f6f6f6] text-[#A2A2A2]"
           aria-label="뒤로가기"
         >
           <ArrowLeft size={22} strokeWidth={2.5} />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-[#4d6fb6]">대화 시나리오 관리</p>
-          <h1 className="mt-1 text-[25px] font-black leading-tight">AI 대화 주제</h1>
-          <p className="mt-1 text-sm font-semibold text-gray-500">
+          <p className="text-xs font-bold text-[#FF6E61]">대화 시나리오 관리</p>
+          <h1 className="mt-0.5 text-[22px] font-semibold leading-tight">AI 대화 주제</h1>
+          <p className="mt-1 text-[13px] text-[#A2A2A2]">
             일정 예약에서 사용할 질문 템플릿을 관리합니다
           </p>
         </div>
@@ -276,9 +276,9 @@ export default function ScenarioManager() {
         </p>
       )}
 
-      <section className="mb-4 rounded-[24px] bg-white p-4 shadow-sm">
+      <section className="mb-4 rounded-2xl bg-[#f6f6f6] p-4">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="text-lg font-black">등록된 주제</h2>
+          <h2 className="text-lg font-semibold">등록된 주제</h2>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -291,7 +291,7 @@ export default function ScenarioManager() {
             <button
               type="button"
               onClick={resetForm}
-              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#2f66c9] text-white"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#FF6E61] text-white"
               aria-label="새 대화 주제 작성"
             >
               <Plus size={20} strokeWidth={3} />
@@ -300,12 +300,12 @@ export default function ScenarioManager() {
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center gap-2 rounded-2xl bg-[#f7f9fc] py-8 text-sm font-bold text-gray-500">
+          <div className="flex items-center justify-center gap-2 rounded-2xl bg-[#f6f6f6] py-8 text-sm font-bold text-gray-500">
             <Loader2 size={18} className="animate-spin" />
             불러오는 중입니다
           </div>
         ) : scenarios.length === 0 ? (
-          <div className="rounded-2xl bg-[#f7f9fc] py-8 text-center text-sm font-bold text-gray-500">
+          <div className="rounded-2xl bg-[#f6f6f6] py-8 text-center text-sm font-bold text-gray-500">
             등록된 대화 주제가 없습니다.
           </div>
         ) : (
@@ -322,20 +322,20 @@ export default function ScenarioManager() {
                     onClick={() => selectScenario(scenario)}
                     className={`rounded-2xl border px-4 py-3 text-left transition ${
                       isSelected
-                        ? "border-[#2f66c9] bg-[#eef5ff]"
-                        : "border-gray-100 bg-[#f7f9fc]"
+                        ? "border-[#FF6E61] bg-[#FFF3EE]"
+                        : "border-white bg-white"
                     }`}
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-base font-black text-gray-900">
+                        <p className="truncate text-base font-semibold text-gray-900">
                           {scenario.title || "제목 없음"}
                         </p>
                         <p className="mt-1 text-xs font-bold text-gray-500">
                           {scenario.category || "분류 없음"} · {scenario.difficulty || "난이도 없음"}
                         </p>
                       </div>
-                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black ${
+                      <span className={`shrink-0 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
                         isActive ? "bg-[#e8f7ee] text-[#237b49]" : "bg-gray-200 text-gray-500"
                       }`}
                       >
@@ -350,13 +350,13 @@ export default function ScenarioManager() {
         )}
       </section>
 
-      <section className="rounded-[24px] bg-white p-5 shadow-sm">
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
         <div className="mb-5 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5efff] text-[#2f66c9]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF3EE] text-[#FF6E61]">
             <ListChecks size={25} strokeWidth={2.5} />
           </div>
           <div>
-            <h2 className="text-lg font-black text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900">
               {form.scenario_id ? "대화 주제 수정" : "새 대화 주제"}
             </h2>
             <p className="text-sm font-semibold text-gray-500">
@@ -381,11 +381,11 @@ export default function ScenarioManager() {
               placeholder="일상"
             />
             <label className="flex flex-col gap-2">
-              <span className="text-sm font-black text-gray-800">난이도</span>
+              <span className="text-sm font-semibold text-gray-800">난이도</span>
               <select
                 value={form.difficulty}
                 onChange={(event) => updateForm("difficulty", event.target.value)}
-                className="rounded-2xl bg-gray-100 px-3 py-4 text-base font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-[#bcd4ff]"
+                className="rounded-2xl bg-white px-3 py-4 text-[15px] font-medium text-gray-900 outline-none focus:ring-2 focus:ring-[#FFB3AA]"
               >
                 {DIFFICULTY_OPTIONS.map((difficulty) => (
                   <option key={difficulty} value={difficulty}>
@@ -397,19 +397,19 @@ export default function ScenarioManager() {
           </div>
 
           <label className="flex flex-col gap-2">
-            <span className="text-sm font-black text-gray-800">질문 목록</span>
+            <span className="text-sm font-semibold text-gray-800">질문 목록</span>
             <textarea
               value={form.questionText}
               onChange={(event) => updateForm("questionText", event.target.value)}
               placeholder={`오늘 기분은 어떠세요?\n오늘은 무엇을 하고 지내셨어요?`}
-              className="h-32 resize-none rounded-2xl bg-gray-100 px-4 py-3 text-base font-semibold leading-6 text-gray-900 outline-none focus:ring-2 focus:ring-[#bcd4ff]"
+              className="h-32 resize-none rounded-2xl bg-white px-4 py-3 text-[15px] font-medium leading-6 text-gray-900 outline-none focus:ring-2 focus:ring-[#FFB3AA]"
             />
           </label>
 
           <button
             type="button"
             onClick={() => updateForm("is_active", !form.is_active)}
-            className={`rounded-2xl px-4 py-4 text-base font-black transition ${
+            className={`rounded-2xl px-4 py-4 text-base font-semibold transition ${
               form.is_active
                 ? "bg-[#e8f7ee] text-[#237b49]"
                 : "bg-gray-100 text-gray-500"
@@ -424,7 +424,8 @@ export default function ScenarioManager() {
             type="button"
             onClick={handleSave}
             disabled={saving}
-            className="flex items-center justify-center gap-2 rounded-2xl bg-[#2f66c9] py-4 text-base font-black text-white shadow-sm disabled:opacity-60"
+            className="flex items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-semibold text-white disabled:opacity-60"
+            style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
           >
             {saving ? <Loader2 size={20} className="animate-spin" /> : <Save size={20} strokeWidth={2.5} />}
             {saving ? "저장 중" : "저장"}
@@ -444,12 +445,11 @@ export default function ScenarioManager() {
     </main>
   );
 }
-
 function StatCard({ label, value }) {
   return (
-    <div className="rounded-[20px] bg-white p-4 text-center shadow-sm">
+    <div className="rounded-2xl bg-[#f6f6f6] p-4 text-center">
       <p className="text-xs font-bold text-gray-500">{label}</p>
-      <p className="mt-2 text-xl font-black text-gray-900">{value}</p>
+      <p className="mt-2 text-xl font-semibold text-gray-900">{value}</p>
     </div>
   );
 }
@@ -457,13 +457,13 @@ function StatCard({ label, value }) {
 function FormField({ label, value, onChange, placeholder = "" }) {
   return (
     <label className="flex flex-col gap-2">
-      <span className="text-sm font-black text-gray-800">{label}</span>
+      <span className="text-sm font-semibold text-gray-800">{label}</span>
       <input
         type="text"
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
-        className="rounded-2xl bg-gray-100 px-4 py-4 text-base font-semibold text-gray-900 outline-none focus:ring-2 focus:ring-[#bcd4ff]"
+        className="rounded-2xl bg-white px-4 py-4 text-[15px] font-medium text-gray-900 outline-none focus:ring-2 focus:ring-[#FFB3AA]"
       />
     </label>
   );

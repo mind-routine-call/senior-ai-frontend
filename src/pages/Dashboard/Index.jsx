@@ -15,35 +15,20 @@ import {
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000";
 
-const clampScore = (value) => {
-  const score = Number(value || 0);
-  return Math.max(0, Math.min(100, score));
+const clampScore = (v) => Math.max(0, Math.min(100, Number(v || 0)));
+
+const formatDate = (d) => {
+  if (!d) return "기록 없음";
+  const date = new Date(d);
+  if (isNaN(date)) return "기록 없음";
+  return date.toLocaleDateString("ko-KR", { month: "long", day: "numeric" });
 };
 
-const formatDate = (dateValue) => {
-  if (!dateValue) return "기록 없음";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "기록 없음";
-
-  return date.toLocaleDateString("ko-KR", {
-    month: "long",
-    day: "numeric",
-  });
-};
-
-const formatDateTime = (dateValue) => {
-  if (!dateValue) return "시간 정보 없음";
-
-  const date = new Date(dateValue);
-  if (Number.isNaN(date.getTime())) return "시간 정보 없음";
-
-  return date.toLocaleString("ko-KR", {
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
+const formatDateTime = (d) => {
+  if (!d) return "시간 정보 없음";
+  const date = new Date(d);
+  if (isNaN(date)) return "시간 정보 없음";
+  return date.toLocaleString("ko-KR", { month: "long", day: "numeric", hour: "2-digit", minute: "2-digit" });
 };
 
 const getGenderLabel = (gender) => {
@@ -95,41 +80,34 @@ export default function Dashboard() {
         const config = buildAuthConfig();
 
         const res = await axios.get(`${API_BASE_URL}/api/v1/elders/list`, config);
-
         if (res.data?.isSuccess || res.data?.success) {
           const elders = res.data.result || [];
           setEldersList(elders);
-
           if (elders.length === 0) {
             setErrorMessage("등록된 어르신이 없습니다.");
             setIsLoading(false);
             return;
           }
-
           const hasSelectedElder = elders.some(
             (elder) => String(elder.elder_id) === String(activeElderId),
           );
-
           if (!activeElderId || !hasSelectedElder) {
             const nextElderId = String(elders[0].elder_id);
             localStorage.setItem("selectedElderId", nextElderId);
             localStorage.setItem("elder_id", nextElderId);
             setActiveElderId(nextElderId);
-
             if (routeElderId !== nextElderId) {
               navigate(`/dashboard/${nextElderId}`, { replace: true });
             }
           }
         }
-      } catch (error) {
-        console.error("어르신 목록 불러오기 실패", error);
+      } catch {
         if (!activeElderId) {
           setErrorMessage("어르신 정보를 불러오지 못했습니다.");
           setIsLoading(false);
         }
       }
     };
-
     fetchEldersList();
   }, [activeElderId, navigate, routeElderId]);
 
@@ -143,49 +121,28 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!activeElderId) return;
-
     const fetchDashboardData = async () => {
-      setIsLoading(true);
-      setErrorMessage("");
-
+      setIsLoading(true); setErrorMessage("");
       try {
         const config = buildAuthConfig();
 
         const [summaryRes, chartsRes, chatsRes] = await Promise.all([
-          axios.get(
-            `${API_BASE_URL}/api/v1/dashboard/${activeElderId}/summary`,
-            config,
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/v1/dashboard/${activeElderId}/charts`,
-            config,
-          ),
-          axios.get(
-            `${API_BASE_URL}/api/v1/dashboard/${activeElderId}/chats`,
-            config,
-          ),
+          axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/summary`, config),
+          axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/charts`, config),
+          axios.get(`${API_BASE_URL}/api/v1/dashboard/${activeElderId}/chats`, config),
         ]);
-
-        const isSummaryOk =
-          summaryRes.data?.isSuccess || summaryRes.data?.success;
-        const isChartsOk = chartsRes.data?.isSuccess || chartsRes.data?.success;
-        const isChatsOk = chatsRes.data?.isSuccess || chatsRes.data?.success;
-
-        if (!isSummaryOk || !isChartsOk || !isChatsOk) {
-          throw new Error("대시보드 정보를 불러오지 못했습니다.");
+        if (!(summaryRes.data?.isSuccess || summaryRes.data?.success) ||
+            !(chartsRes.data?.isSuccess || chartsRes.data?.success) ||
+            !(chatsRes.data?.isSuccess || chatsRes.data?.success)) {
+          throw new Error();
         }
-
         setSummaryData(summaryRes.data.result);
         setChartsData(chartsRes.data.result);
         setChatsData(chatsRes.data.result || []);
-      } catch (error) {
-        console.error("대시보드 데이터 조회 실패", error);
+      } catch {
         setErrorMessage("대시보드 정보를 불러오지 못했습니다.");
-      } finally {
-        setIsLoading(false);
-      }
+      } finally { setIsLoading(false); }
     };
-
     fetchDashboardData();
   }, [activeElderId]);
 
@@ -243,158 +200,118 @@ export default function Dashboard() {
   };
 
   const elder = summaryData?.elder || {};
-  const latestAssessment = summaryData?.latest_assessment || {};
+  const assessment = summaryData?.latest_assessment || {};
   const latestReport = summaryData?.latest_report || {};
   const weeklyCallCount = summaryData?.weekly_call_count || 0;
   const uncheckedAlertCount = summaryData?.unchecked_alert_count || 0;
 
-  const chartRows =
-    chartsData?.trends?.map((item) => ({
-      name: formatDate(item.assessed_at),
-      score: Number(item.total_score || 0),
-    })) || [];
+  const chartRows = chartsData?.trends?.map((item) => ({
+    name: formatDate(item.assessed_at),
+    score: Number(item.total_score || 0),
+  })) || [];
 
   const scoreItems = [
-    {
-      label: "기억력",
-      value: clampScore(latestAssessment.memory_score),
-    },
-    {
-      label: "주의 집중",
-      value: clampScore(latestAssessment.attention_score),
-    },
-    {
-      label: "언어 능력",
-      value: clampScore(latestAssessment.language_score),
-    },
+    { label: "기억력", value: clampScore(assessment.memory_score) },
+    { label: "주의 집중", value: clampScore(assessment.attention_score) },
+    { label: "언어 능력", value: clampScore(assessment.language_score) },
   ];
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-full items-center justify-center bg-gray-50 px-4">
-        <p className="text-sm font-semibold text-gray-500">
-          대시보드 정보를 불러오고 있습니다.
-        </p>
-      </div>
-    );
-  }
+  if (isLoading) return (
+    <div className="flex min-h-full items-center justify-center bg-white px-4">
+      <p className="text-[15px] text-[#A2A2A2]">대시보드 정보를 불러오고 있습니다.</p>
+    </div>
+  );
 
-  if (errorMessage) {
-    return (
-      <div className="flex min-h-full flex-col items-center justify-center gap-3 bg-gray-50 px-6 text-center">
-        <p className="text-lg font-bold text-gray-900">{errorMessage}</p>
-        <p className="text-sm text-gray-500">
-          서버 연결 상태와 어르신 번호를 확인해주세요.
-        </p>
-      </div>
-    );
-  }
+  if (errorMessage) return (
+    <div className="flex min-h-full flex-col items-center justify-center gap-2 bg-white px-6 text-center">
+      <p className="text-[17px] font-semibold">{errorMessage}</p>
+      <p className="text-[14px] text-[#A2A2A2]">서버 연결 상태와 어르신 번호를 확인해주세요.</p>
+    </div>
+  );
 
   return (
-    <div className="flex min-h-full flex-col gap-4 bg-gray-50 py-6 pb-12">
-      <header className="flex items-center justify-between px-1">
+    <div className="flex min-h-full flex-col gap-4 bg-white py-6 pb-10">
+
+      {/* 헤더 */}
+      <header className="flex items-center justify-between">
         <div>
-          <p className="text-xs font-semibold text-indigo-500">보호자 대시보드</p>
-          <h1 className="mt-1 text-2xl font-extrabold text-gray-900">mindroutine</h1>
+          <p className="text-xs font-bold" style={{ color: "#FF6E61" }}>보호자 대시보드</p>
+          <h1 className="mt-0.5 text-[22px] font-semibold">mindroutine</h1>
         </div>
-
         <div className="flex items-center gap-2">
-
           <Link
-          className="rounded-full bg-white px-3 py-2 text-xs font-bold text-gray-600 shadow-sm transition hover:bg-indigo-50 hover:text-indigo-600"
-          to={`/notification/${activeElderId}`}
-        >
-          알림 {uncheckedAlertCount}건
-        </Link>
-
-        <Link
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-white text-base shadow-sm border border-gray-100 transition hover:bg-indigo-50 hover:scale-105 active:scale-95"
-            to="/mypage"
-            title="마이페이지 이동"
+            to={`/notification/${activeElderId}`}
+            className="rounded-2xl bg-[#f6f6f6] px-4 py-2 text-[13px] font-semibold"
           >
-            <UserRound size={18} strokeWidth={2.4} />
+            알림 {uncheckedAlertCount}건
+          </Link>
+          <Link
+            to="/mypage"
+            className="flex h-9 w-9 items-center justify-center rounded-2xl bg-[#f6f6f6]"
+            title="마이페이지"
+          >
+            <UserRound size={18} strokeWidth={2} style={{ color: "#A2A2A2" }} />
           </Link>
         </div>
-
-        
       </header>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center gap-4">
-          <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500">
-            <svg
-              aria-hidden="true"
-              className="h-9 w-9"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth="1.8"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0"
-              />
-            </svg>
-          </div>
-          <div className="min-w-0">
+      {/* 어르신 프로필 */}
+      <section className="rounded-2xl bg-[#f6f6f6] p-4 flex items-center gap-4">
+        <div
+          className="w-14 h-14 rounded-xl flex items-center justify-center shrink-0"
+          style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
+        >
+          <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 7.5a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.5 20.25a7.5 7.5 0 0 1 15 0" />
+          </svg>
+        </div>
+        <div className="min-w-0 flex-1">
+          {eldersList.length > 1 ? (
             <select
               value={activeElderId || ""}
               onChange={handleElderChange}
-              className="w-full bg-transparent border-none outline-none font-extrabold text-xl text-gray-900 cursor-pointer hover:text-indigo-600 transition-colors focus:ring-0"
+              className="w-full bg-transparent border-none outline-none text-[18px] font-semibold text-[#1a1a1a] cursor-pointer focus:ring-0"
             >
-              {eldersList.length > 0 ? (
-                eldersList.map((e) => (
-                  <option key={e.elder_id} value={e.elder_id}>
-                    {e.name} 어르신
-                  </option>
-                ))
-              ) : (
-                /* 목록이 없으면 기존 이름 표시 */
-                <option value={activeElderId}>{elder.name || "어르신 이름 없음"}</option>
-              )}
+              {eldersList.map((e) => (
+                <option key={e.elder_id} value={e.elder_id}>{e.name} 어르신</option>
+              ))}
             </select>
-            <p className="mt-1 text-sm font-medium text-gray-500">
-              {getGenderLabel(elder.gender)} | {elder.age || "-"}세
-            </p>
-            <p className="mt-2 line-clamp-2 text-sm text-gray-600">
-              {elder.cognitive_note || "등록된 특이사항이 없습니다."}
-            </p>
-          </div>
+          ) : (
+            <h2 className="text-[18px] font-semibold truncate">{elder.name || "어르신 이름 없음"}</h2>
+          )}
+          <p className="mt-0.5 text-[13px] text-[#A2A2A2]">{getGenderLabel(elder.gender)} | {elder.age || "-"}세</p>
+          {elder.cognitive_note && (
+            <p className="mt-1 text-[13px] text-[#A2A2A2] line-clamp-1">{elder.cognitive_note}</p>
+          )}
         </div>
       </section>
 
+      {/* 통계 카드 */}
       <section className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <p className="text-sm font-semibold text-gray-500">최근 종합 점수</p>
-          <p className="mt-3 text-3xl font-extrabold text-gray-900">
-            {latestAssessment.total_score ?? 0}
-            <span className="ml-1 text-base font-bold text-gray-400">점</span>
-          </p>
-          <p className="mt-2 text-xs font-semibold text-indigo-500">
-            {getRiskLabel(latestAssessment.risk_level)}
-          </p>
+        <div className="rounded-2xl bg-[#f6f6f6] p-4">
+          <p className="text-[13px] text-[#A2A2A2]">최근 종합 점수</p>
+          <p className="mt-2 text-[28px] font-semibold">{assessment.total_score ?? 0}<span className="text-[14px] font-normal text-[#A2A2A2] ml-1">점</span></p>
+          <p className="mt-1 text-[12px] font-semibold" style={{ color: "#FF6E61" }}>{getRiskLabel(assessment.risk_level)}</p>
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <p className="text-sm font-semibold text-gray-500">주간 대화 횟수</p>
-          <p className="mt-3 text-3xl font-extrabold text-gray-900">
-            {weeklyCallCount}
-            <span className="ml-1 text-base font-bold text-gray-400">회</span>
-          </p>
-          <p className="mt-2 text-xs font-semibold text-gray-500">
-            최근 7일 기준
-          </p>
+        <div className="rounded-2xl bg-[#f6f6f6] p-4">
+          <p className="text-[13px] text-[#A2A2A2]">주간 대화 횟수</p>
+          <p className="mt-2 text-[28px] font-semibold">{weeklyCallCount}<span className="text-[14px] font-normal text-[#A2A2A2] ml-1">회</span></p>
+          <p className="mt-1 text-[12px] text-[#A2A2A2]">최근 7일 기준</p>
         </div>
       </section>
 
-      <section className="rounded-2xl border border-indigo-100 bg-white p-5 shadow-sm">
+      {/* 인지 영역별 점수 */}
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
         <div className="flex items-start gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-600">
+          <div
+            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-white"
+            style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
+          >
             <Activity size={23} strokeWidth={2.5} />
           </div>
           <div className="min-w-0 flex-1">
-            <h2 className="text-base font-extrabold text-gray-900">인지평가 실행</h2>
-            <p className="mt-1 text-sm font-semibold leading-5 text-gray-500">
+            <h2 className="text-[16px] font-semibold">인지평가 실행</h2>
+            <p className="mt-1 text-[13px] font-medium leading-5 text-[#A2A2A2]">
               최근 저장된 대화를 분석해 점수와 리포트 요약을 갱신합니다.
             </p>
           </div>
@@ -403,150 +320,103 @@ export default function Dashboard() {
           type="button"
           onClick={handleEvaluateLatestChat}
           disabled={isAnalyzing}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-indigo-600 py-4 text-base font-black text-white shadow-sm disabled:opacity-60"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-2xl py-4 text-[15px] font-semibold text-white disabled:opacity-60"
+          style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
         >
           {isAnalyzing ? <Loader2 size={20} className="animate-spin" /> : <Activity size={20} strokeWidth={2.5} />}
           {isAnalyzing ? "분석 중" : "최근 대화 분석하기"}
         </button>
         {analysisMessage && (
-          <p className="mt-3 rounded-2xl bg-indigo-50 px-4 py-3 text-sm font-bold leading-6 text-indigo-700">
+          <p className="mt-3 rounded-2xl bg-white px-4 py-3 text-[13px] font-semibold leading-6 text-[#FF6E61]">
             {analysisMessage}
           </p>
         )}
       </section>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-extrabold text-gray-900">
-          인지 영역별 점수
-        </h2>
-        <div className="mt-5 flex flex-col gap-4">
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
+        <h2 className="text-[16px] font-semibold mb-4">인지 영역별 점수</h2>
+        <div className="flex flex-col gap-3">
           {scoreItems.map((item) => (
             <div key={item.label} className="flex items-center gap-3">
-              <span className="w-20 shrink-0 text-sm font-bold text-gray-600">
-                {item.label}
-              </span>
-              <div className="h-3 flex-1 overflow-hidden rounded-full bg-gray-100">
+              <span className="w-18 shrink-0 text-[13px] text-[#A2A2A2]">{item.label}</span>
+              <div className="h-2 flex-1 rounded-full bg-white overflow-hidden">
                 <div
-                  className="h-full rounded-full bg-indigo-500"
-                  style={{ width: `${item.value}%` }}
+                  className="h-full rounded-full"
+                  style={{ width: `${item.value}%`, background: "linear-gradient(90deg, #FF6E61, #FCA963)" }}
                 />
               </div>
-              <span className="w-8 text-right text-xs font-bold text-gray-500">
-                {item.value}
-              </span>
+              <span className="w-7 text-right text-[12px] text-[#A2A2A2]">{item.value}</span>
             </div>
           ))}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-extrabold text-gray-900">
-          주간 점수 추이
-        </h2>
-        <div className="mt-4 h-48 w-full">
+      {/* 주간 점수 추이 */}
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
+        <h2 className="text-[16px] font-semibold mb-4">주간 점수 추이</h2>
+        <div className="h-44 w-full">
           {chartRows.length > 0 ? (
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart
-                data={chartRows}
-                margin={{ top: 8, right: 10, left: -24, bottom: 4 }}
-              >
-                <CartesianGrid
-                  stroke="#f3f4f6"
-                  strokeDasharray="3 3"
-                  vertical={false}
-                />
-                <XAxis
-                  dataKey="name"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
-                />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 11, fill: "#9ca3af" }}
-                  domain={[0, 100]}
-                />
-                <Tooltip
-                  contentStyle={{
-                    border: "none",
-                    borderRadius: "12px",
-                    boxShadow: "0 10px 24px rgba(15, 23, 42, 0.12)",
-                  }}
-                />
-                <Line
-                  activeDot={{ r: 6 }}
-                  dataKey="score"
-                  dot={{ fill: "#4f46e5", r: 4, stroke: "#ffffff" }}
-                  stroke="#4f46e5"
-                  strokeWidth={3}
-                  type="monotone"
-                />
+              <LineChart data={chartRows} margin={{ top: 4, right: 8, left: -28, bottom: 4 }}>
+                <CartesianGrid stroke="#e8e8e8" strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#A2A2A2" }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 11, fill: "#A2A2A2" }} domain={[0, 100]} />
+                <Tooltip contentStyle={{ border: "none", borderRadius: "12px", boxShadow: "0 4px 16px rgba(0,0,0,0.08)" }} />
+                <Line activeDot={{ r: 5 }} dataKey="score" dot={{ fill: "#FF6E61", r: 3, stroke: "#fff", strokeWidth: 2 }} stroke="#FF6E61" strokeWidth={2.5} type="monotone" />
               </LineChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex h-full items-center justify-center rounded-xl bg-gray-50 text-sm font-semibold text-gray-400">
+            <div className="flex h-full items-center justify-center rounded-xl bg-white text-[13px] text-[#A2A2A2]">
               표시할 차트 데이터가 없습니다.
             </div>
           )}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <h2 className="text-base font-extrabold text-gray-900">
-          최근 대화 주제
-        </h2>
-        <div className="mt-4 flex flex-wrap gap-2">
+      {/* 최근 대화 주제 */}
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
+        <h2 className="text-[16px] font-semibold mb-3">최근 대화 주제</h2>
+        <div className="flex flex-wrap gap-2">
           {chatsData.length > 0 ? (
             chatsData.map((chat) => (
-              <span
-                key={`topic-${chat.call_id}`}
-                className="rounded-full bg-slate-100 px-4 py-2 text-xs font-bold text-gray-600"
-              >
+              <span key={`topic-${chat.call_id}`} className="rounded-2xl bg-white px-3 py-1.5 text-[12px] font-semibold" style={{ color: "#FF6E61" }}>
                 {chat.scenario_title || "자유 대화"}
               </span>
             ))
           ) : (
-            <span className="text-sm font-semibold text-gray-400">
-              최근 대화 주제가 없습니다.
-            </span>
+            <span className="text-[13px] text-[#A2A2A2]">최근 대화 주제가 없습니다.</span>
           )}
         </div>
       </section>
 
-      <section className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-base font-extrabold text-gray-900">
-            최근 대화 내역
-          </h2>
+      {/* 최근 대화 내역 */}
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-[16px] font-semibold">최근 대화 내역</h2>
           <button
             type="button"
             onClick={() => navigate(`/guardian/elders/${activeElderId}/chats`)}
-            className="flex items-center gap-1 rounded-full bg-[#eef5ff] px-3 py-1.5 text-xs font-black text-[#2f66c9]"
+            className="flex items-center gap-1 rounded-full bg-white px-3 py-1.5 text-[12px] font-semibold text-[#FF6E61]"
           >
             전체보기
             <ChevronRight size={15} strokeWidth={2.7} />
           </button>
         </div>
-        <div className="mt-4 flex flex-col gap-3">
+        <div className="flex flex-col gap-2">
           {chatsData.length > 0 ? (
             chatsData.map((chat) => (
               <button
                 key={`chat-${chat.call_id}`}
                 type="button"
                 onClick={() => navigate(`/guardian/elders/${activeElderId}/chats/${chat.call_id}`)}
-                className="rounded-xl border border-gray-100 bg-gray-50 p-4 text-left transition active:scale-[0.99]"
+                className="rounded-xl bg-white p-3 text-left transition active:scale-[0.99]"
               >
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-sm font-extrabold text-gray-900">
-                      {chat.scenario_title || "자유 대화"}
-                    </h3>
-                    <p className="mt-1 text-xs font-semibold text-gray-500">
-                      {formatDateTime(chat.started_at)}
-                    </p>
+                    <h3 className="text-[14px] font-semibold">{chat.scenario_title || "자유 대화"}</h3>
+                    <p className="mt-0.5 text-[12px] text-[#A2A2A2]">{formatDateTime(chat.started_at)}</p>
                   </div>
-                  <span className="shrink-0 rounded-full bg-white px-3 py-1 text-xs font-bold text-gray-600">
+                  <span className="shrink-0 rounded-lg bg-[#f6f6f6] px-2 py-1 text-[11px] font-semibold text-[#A2A2A2]">
                     {chat.call_status || "상태 없음"}
                   </span>
                 </div>
@@ -557,19 +427,18 @@ export default function Dashboard() {
               </button>
             ))
           ) : (
-            <div className="rounded-xl bg-gray-50 py-6 text-center text-sm font-semibold text-gray-400">
+            <div className="rounded-xl bg-white py-5 text-center text-[13px] text-[#A2A2A2]">
               최근 진행한 대화가 없습니다.
             </div>
           )}
         </div>
       </section>
 
+      {/* 리포트 요약 */}
       {latestReport.summary_text && (
-        <section className="rounded-2xl border border-indigo-100 bg-indigo-50 p-5">
-          <h2 className="text-base font-extrabold text-indigo-900">
-            최근 리포트 요약
-          </h2>
-          <p className="mt-3 text-sm font-medium leading-6 text-indigo-900">
+        <section className="rounded-2xl p-4" style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}>
+          <h2 className="text-[15px] font-semibold text-white">최근 리포트 요약</h2>
+          <p className="mt-2 text-[13px] font-medium leading-6 text-white/90">
             {latestReport.llm_summary || latestReport.summary_text}
           </p>
         </section>

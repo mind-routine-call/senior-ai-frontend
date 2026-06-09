@@ -149,35 +149,35 @@ export default function GuardianChatHistory() {
   };
 
   return (
-    <main className="flex min-h-full flex-col bg-[#f6f8fb] py-6 font-sans text-gray-900">
+    <main className="flex min-h-full flex-col bg-white py-6 font-sans text-gray-900">
       <header className="mb-5 flex items-start justify-between gap-3">
         <button
           type="button"
           onClick={goBack}
-          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white text-gray-800 shadow-sm"
+          className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#f6f6f6] text-[#A2A2A2]"
           aria-label="뒤로가기"
         >
           <ArrowLeft size={22} strokeWidth={2.5} />
         </button>
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-bold text-[#4d6fb6]">보호자 대화 조회</p>
-          <h1 className="mt-1 truncate text-[25px] font-black leading-tight">
+          <p className="text-xs font-bold text-[#FF6E61]">보호자 대화 조회</p>
+          <h1 className="mt-0.5 truncate text-[22px] font-semibold leading-tight">
             {isDetailMode ? "대화 상세" : `${titleName} 대화 기록`}
           </h1>
-          <p className="mt-1 text-sm font-semibold text-gray-500">
+          <p className="mt-1 text-[13px] text-[#A2A2A2]">
             {isDetailMode ? "질문과 답변, 분석 지표를 확인합니다" : "어르신의 AI 대화 세션을 모아봅니다"}
           </p>
         </div>
       </header>
 
       {loading && (
-        <section className="rounded-[24px] bg-white p-8 text-center text-sm font-bold text-gray-500 shadow-sm">
+        <section className="rounded-2xl bg-[#f6f6f6] p-8 text-center text-[14px] text-[#A2A2A2]">
           대화 기록을 불러오고 있습니다.
         </section>
       )}
 
       {!loading && errorMessage && (
-        <section className="rounded-[24px] border border-red-100 bg-red-50 p-5 text-sm font-bold leading-relaxed text-red-700">
+        <section className="rounded-2xl bg-[#FFF3EE] p-5 text-[14px] font-semibold leading-relaxed text-[#FF6E61]">
           {errorMessage}
         </section>
       )}
@@ -197,7 +197,6 @@ export default function GuardianChatHistory() {
     </main>
   );
 }
-
 function ChatList({ chats, elderId, listStats, navigate }) {
   return (
     <div className="flex flex-col gap-4 pb-8">
@@ -208,9 +207,9 @@ function ChatList({ chats, elderId, listStats, navigate }) {
       </section>
 
       {chats.length === 0 ? (
-        <section className="rounded-[24px] bg-white p-8 text-center shadow-sm">
+        <section className="rounded-2xl bg-[#f6f6f6] p-8 text-center">
           <MessageCircle className="mx-auto text-gray-300" size={42} strokeWidth={2.2} />
-          <p className="mt-4 text-base font-black text-gray-800">아직 저장된 대화가 없습니다.</p>
+          <p className="mt-4 text-base font-semibold text-gray-800">아직 저장된 대화가 없습니다.</p>
           <p className="mt-2 text-sm font-semibold leading-6 text-gray-500">
             어르신이 대화를 완료하면 이곳에서 내용을 확인할 수 있습니다.
           </p>
@@ -222,28 +221,28 @@ function ChatList({ chats, elderId, listStats, navigate }) {
               key={chat.call_id}
               type="button"
               onClick={() => navigate(`/guardian/elders/${elderId}/chats/${chat.call_id}`)}
-              className="rounded-[24px] bg-white p-5 text-left shadow-sm transition active:scale-[0.99]"
+              className="rounded-2xl bg-[#f6f6f6] p-4 text-left transition active:scale-[0.99]"
             >
               <div className="mb-4 flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="text-xs font-bold text-[#4d6fb6]">
+                  <p className="text-xs font-bold text-[#FF6E61]">
                     {formatDateTime(chat.started_at)}
                   </p>
-                  <h2 className="mt-1 truncate text-lg font-black text-gray-900">
+                  <h2 className="mt-1 truncate text-lg font-semibold text-gray-900">
                     {chat.scenario_title || "자유 대화"}
                   </h2>
                 </div>
-                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-black ${getStatusClass(chat.call_status)}`}>
+                <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${getStatusClass(chat.call_status)}`}>
                   {chat.call_status || "상태 없음"}
                 </span>
               </div>
 
-              <div className="flex items-center justify-between rounded-2xl bg-[#f7f9fc] px-4 py-3">
+              <div className="flex items-center justify-between rounded-2xl bg-[#f6f6f6] px-4 py-3">
                 <span className="flex items-center gap-2 text-sm font-bold text-gray-600">
                   <MessageCircle size={18} strokeWidth={2.4} />
                   대화 턴 {Number(chat.turn_count || 0)}개
                 </span>
-                <span className="flex items-center gap-1 text-sm font-black text-[#2f66c9]">
+                <span className="flex items-center gap-1 text-sm font-semibold text-[#FF6E61]">
                   상세 보기
                   <ChevronRight size={18} strokeWidth={2.6} />
                 </span>
@@ -261,13 +260,13 @@ function ChatDetail({ detail }) {
 
   return (
     <div className="flex flex-col gap-4 pb-8">
-      <section className="rounded-[24px] bg-white p-5 shadow-sm">
+      <section className="rounded-2xl bg-[#f6f6f6] p-4">
         <div className="mb-4 flex items-center gap-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#e5efff] text-[#2f66c9]">
+          <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#FFF3EE] text-[#FF6E61]">
             <ShieldCheck size={25} strokeWidth={2.5} />
           </div>
           <div className="min-w-0">
-            <h2 className="truncate text-xl font-black text-gray-900">
+            <h2 className="truncate text-xl font-semibold text-gray-900">
               {detail.scenario_title || "자유 대화"}
             </h2>
             <p className="mt-1 text-sm font-bold text-gray-500">
@@ -283,7 +282,7 @@ function ChatDetail({ detail }) {
       </section>
 
       {turns.length === 0 ? (
-        <section className="rounded-[24px] bg-white p-8 text-center text-sm font-bold text-gray-500 shadow-sm">
+        <section className="rounded-2xl bg-[#f6f6f6] p-8 text-center text-sm font-bold text-gray-500">
           저장된 대화 턴이 없습니다.
         </section>
       ) : (
@@ -305,9 +304,9 @@ function TurnCard({ turn }) {
     : (Number(turn.response_delay_ms) / 1000).toFixed(1);
 
   return (
-    <article className="rounded-[24px] bg-white p-5 shadow-sm">
+    <article className="rounded-2xl bg-[#f6f6f6] p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
-        <h3 className="text-base font-black text-gray-900">
+        <h3 className="text-base font-semibold text-gray-900">
           대화 {turn.turn_order || "-"}
         </h3>
         <span className="text-xs font-bold text-gray-400">
@@ -337,14 +336,14 @@ function TurnCard({ turn }) {
 
 function ConversationBlock({ label, text, tone }) {
   const toneClass = {
-    ai: "bg-[#eef5ff] text-[#17335f]",
-    elder: "bg-[#f7f9fc] text-gray-900",
+    ai: "bg-[#FFF3EE] text-[#1a1a1a]",
+    elder: "bg-white text-gray-900",
     reply: "bg-white text-gray-900 border border-gray-100",
   }[tone];
 
   return (
     <div className={`mt-3 rounded-2xl px-4 py-3 ${toneClass}`}>
-      <span className="text-xs font-black text-gray-500">{label}</span>
+      <span className="text-xs font-semibold text-gray-500">{label}</span>
       <p className="mt-1 whitespace-pre-wrap text-[15px] font-bold leading-6">{text}</p>
     </div>
   );
@@ -352,30 +351,30 @@ function ConversationBlock({ label, text, tone }) {
 
 function StatCard({ label, value }) {
   return (
-    <div className="rounded-[20px] bg-white p-4 text-center shadow-sm">
+    <div className="rounded-2xl bg-[#f6f6f6] p-4 text-center">
       <p className="text-xs font-bold text-gray-500">{label}</p>
-      <p className="mt-2 text-xl font-black text-gray-900">{value}</p>
+      <p className="mt-2 text-xl font-semibold text-gray-900">{value}</p>
     </div>
   );
 }
 
 function MetaBox({ icon, label, value }) {
   return (
-    <div className="rounded-2xl bg-[#f7f9fc] p-4">
-      <span className="flex items-center gap-2 text-xs font-black text-gray-500">
+    <div className="rounded-2xl bg-white p-4">
+      <span className="flex items-center gap-2 text-xs font-semibold text-gray-500">
         {icon}
         {label}
       </span>
-      <p className="mt-2 text-sm font-black leading-5 text-gray-900">{value}</p>
+      <p className="mt-2 text-sm font-semibold leading-5 text-gray-900">{value}</p>
     </div>
   );
 }
 
 function Metric({ label, value }) {
   return (
-    <div className="rounded-2xl bg-[#f7f9fc] px-3 py-3">
+    <div className="rounded-2xl bg-white px-3 py-3">
       <p className="text-xs font-bold text-gray-500">{label}</p>
-      <p className="mt-1 text-base font-black text-gray-900">{value}</p>
+      <p className="mt-1 text-base font-semibold text-gray-900">{value}</p>
     </div>
   );
 }

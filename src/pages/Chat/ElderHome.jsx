@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { CalendarClock, ChevronRight, Clock, PhoneCall, UserRound, X, Settings } from 'lucide-react'
 import { getElderHome } from '../../api/elderChat'
@@ -49,6 +49,7 @@ export default function ElderHome() {
   const [home, setHome] = useState(fallbackHome)
   const [isLoading, setIsLoading] = useState(true)
   const [openPanel, setOpenPanel] = useState(null)
+  const detailPanelRef = useRef(null)
 
   useEffect(() => {
     const loadHome = async () => {
@@ -87,6 +88,19 @@ export default function ElderHome() {
   const togglePanel = (panelName) => {
     setOpenPanel((current) => (current === panelName ? null : panelName))
   }
+
+  useEffect(() => {
+    if (!openPanel) return
+
+    const scrollTimer = window.setTimeout(() => {
+      detailPanelRef.current?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'nearest',
+      })
+    }, 80)
+
+    return () => window.clearTimeout(scrollTimer)
+  }, [openPanel])
 
   const handleStartChat = () => {
     navigate('/elder-chat', {
@@ -127,29 +141,103 @@ export default function ElderHome() {
 
       <div className="home-actions">
         <button className="primary-action" type="button" onClick={handleStartChat}>
-          <PhoneCall size={27} strokeWidth={2.4} />
+          <PhoneCall size={31} strokeWidth={2.5} />
           지금 대화하기
         </button>
-        <button
-          className="secondary-action"
-          type="button"
-          onClick={() => togglePanel('schedule')}
-          aria-expanded={openPanel === 'schedule'}
-        >
-          <CalendarClock size={24} strokeWidth={2.3} />
-          대화 시간 보기
-          <ChevronRight size={24} strokeWidth={2.3} />
-        </button>
-        <button
-          className="secondary-action"
-          type="button"
-          onClick={() => togglePanel('profile')}
-          aria-expanded={openPanel === 'profile'}
-        >
-          <UserRound size={24} strokeWidth={2.3} />
-          내 정보 보기
-          <ChevronRight size={24} strokeWidth={2.3} />
-        </button>
+
+        <div className="home-action-group">
+          <button
+            className={`secondary-action ${openPanel === 'schedule' ? 'secondary-action--open' : ''}`}
+            type="button"
+            onClick={() => togglePanel('schedule')}
+            aria-expanded={openPanel === 'schedule'}
+          >
+            <CalendarClock size={24} strokeWidth={2.3} />
+            대화 시간 보기
+            <ChevronRight
+              className="secondary-action__chevron"
+              size={24}
+              strokeWidth={2.3}
+            />
+          </button>
+
+          {openPanel === 'schedule' && (
+            <section
+              ref={detailPanelRef}
+              className="home-detail-panel home-detail-panel--inline"
+              aria-label="대화 시간 정보"
+            >
+              <button className="panel-close-button" type="button" onClick={() => setOpenPanel(null)} aria-label="닫기">
+                <X size={20} strokeWidth={2.5} />
+              </button>
+              <div className="section-title">
+                <CalendarClock size={22} strokeWidth={2.3} />
+                <h2>대화 시간</h2>
+              </div>
+              {isLoading ? (
+                <p className="muted-text">일정을 불러오고 있어요.</p>
+              ) : (
+                <div className="detail-row">
+                  <span>다음 대화</span>
+                  <strong>{scheduleTime}</strong>
+                  <p>{nextSchedule?.scenario_title || '오늘 기분 묻기'} · {nextSchedule?.repeat_type || '매일'}</p>
+                </div>
+              )}
+            </section>
+          )}
+        </div>
+
+        <div className="home-action-group">
+          <button
+            className={`secondary-action ${openPanel === 'profile' ? 'secondary-action--open' : ''}`}
+            type="button"
+            onClick={() => togglePanel('profile')}
+            aria-expanded={openPanel === 'profile'}
+          >
+            <UserRound size={24} strokeWidth={2.3} />
+            내 정보 보기
+            <ChevronRight
+              className="secondary-action__chevron"
+              size={24}
+              strokeWidth={2.3}
+            />
+          </button>
+
+          {openPanel === 'profile' && (
+            <section
+              ref={detailPanelRef}
+              className="home-detail-panel home-detail-panel--inline"
+              aria-label="내 정보"
+            >
+              <button className="panel-close-button" type="button" onClick={() => setOpenPanel(null)} aria-label="닫기">
+                <X size={20} strokeWidth={2.5} />
+              </button>
+              <div className="section-title">
+                <UserRound size={22} strokeWidth={2.3} />
+                <h2>내 정보</h2>
+              </div>
+              <div className="profile-grid">
+                <div>
+                  <span>이름</span>
+                  <strong>{elderName}</strong>
+                </div>
+                <div>
+                  <span>나이</span>
+                  <strong>{elderAge}</strong>
+                </div>
+                <div>
+                  <span>성별</span>
+                  <strong>{elderGender}</strong>
+                </div>
+                <div>
+                  <span>보호자</span>
+                  <strong>{home.guardian?.name || '보호자 정보 없음'}</strong>
+                </div>
+              </div>
+              <p className="profile-note">{home.elder?.cognitive_note || '등록된 참고 메모가 없습니다.'}</p>
+            </section>
+          )}
+        </div>
 
         <button
           className="secondary-action"
@@ -158,61 +246,13 @@ export default function ElderHome() {
         >
           <Settings size={24} strokeWidth={2.3} />
           마이페이지
-          <ChevronRight size={24} strokeWidth={2.3} />
+          <ChevronRight
+            className="secondary-action__chevron"
+            size={24}
+            strokeWidth={2.3}
+          />
         </button>
       </div>
-
-      {openPanel === 'schedule' && (
-        <section className="home-detail-panel" aria-label="대화 시간 정보">
-          <button className="panel-close-button" type="button" onClick={() => setOpenPanel(null)} aria-label="닫기">
-            <X size={20} strokeWidth={2.5} />
-          </button>
-          <div className="section-title">
-            <CalendarClock size={22} strokeWidth={2.3} />
-            <h2>대화 시간</h2>
-          </div>
-          {isLoading ? (
-            <p className="muted-text">일정을 불러오고 있어요.</p>
-          ) : (
-            <div className="detail-row">
-              <span>다음 대화</span>
-              <strong>{scheduleTime}</strong>
-              <p>{nextSchedule?.scenario_title || '오늘 기분 묻기'} · {nextSchedule?.repeat_type || '매일'}</p>
-            </div>
-          )}
-        </section>
-      )}
-
-      {openPanel === 'profile' && (
-        <section className="home-detail-panel" aria-label="내 정보">
-          <button className="panel-close-button" type="button" onClick={() => setOpenPanel(null)} aria-label="닫기">
-            <X size={20} strokeWidth={2.5} />
-          </button>
-          <div className="section-title">
-            <UserRound size={22} strokeWidth={2.3} />
-            <h2>내 정보</h2>
-          </div>
-          <div className="profile-grid">
-            <div>
-              <span>이름</span>
-              <strong>{elderName}</strong>
-            </div>
-            <div>
-              <span>나이</span>
-              <strong>{elderAge}</strong>
-            </div>
-            <div>
-              <span>성별</span>
-              <strong>{elderGender}</strong>
-            </div>
-            <div>
-              <span>보호자</span>
-              <strong>{home.guardian?.name || '보호자 정보 없음'}</strong>
-            </div>
-          </div>
-          <p className="profile-note">{home.elder?.cognitive_note || '등록된 참고 메모가 없습니다.'}</p>
-        </section>
-      )}
     </main>
   )
 }
