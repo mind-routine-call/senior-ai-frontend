@@ -108,7 +108,7 @@
   }
 
   .opening-final-copy {
-    width: min(100%, 21rem);
+    width: min(100%, 19rem);
     transform: translateY(-0.2rem);
   }
 
@@ -116,6 +116,7 @@
     display: flex;
     width: max-content;
     max-width: calc(100% - 1.6rem);
+    margin-left: 0.45rem;
     margin-right: auto;
     font-size: 1.3rem;
   }
@@ -123,10 +124,11 @@
   .opening-final-title {
     display: flex;
     width: max-content;
-    margin-top: 1.15rem;
+    margin-top: 0.6rem;
     margin-left: auto;
+    margin-right: 0.45rem;
     color: #ff6e61;
-    font-size: 2.15rem;
+    font-size: 2.8rem;
     font-weight: 500;
   }
 
