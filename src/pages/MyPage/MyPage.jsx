@@ -399,7 +399,11 @@ export default function MyPage() {
             </section>
 
             <section className="rounded-2xl bg-[#f6f6f6] p-4">
-              <h2 className="mb-3 text-lg font-semibold">초대코드</h2>
+              <h2 className="text-lg font-semibold">초대코드</h2>
+              <p className="mt-1 mb-3 text-[13px] font-medium leading-5 text-gray-500">
+                어르신이 시작 화면의 <strong className="font-semibold text-gray-700">어르신으로 회원가입하기</strong>에서
+                아래 코드를 입력하면 연결됩니다.
+              </p>
               <div
                 className="flex items-center justify-between gap-3 rounded-2xl px-4 py-4 text-white"
                 style={{ background: "linear-gradient(135deg, #FF6E61, #FCA963)" }}
@@ -409,10 +413,10 @@ export default function MyPage() {
                   type="button"
                   onClick={handleCopyCode}
                   disabled={!inviteCode}
-                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-white/18 disabled:opacity-40"
-                  aria-label="초대코드 복사"
+                  className="flex min-h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-white/18 px-3 text-sm font-semibold disabled:opacity-40"
                 >
-                  <Clipboard size={22} strokeWidth={2.5} />
+                  <Clipboard size={18} strokeWidth={2.5} />
+                  코드 복사
                 </button>
               </div>
             </section>
