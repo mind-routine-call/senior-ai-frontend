@@ -8,6 +8,7 @@ import {
   getDefaultPathForRole,
   saveAuthSession,
 } from '../../utils/authSession'
+import { isGuardianOnboardingComplete } from '../../utils/guardianOnboarding'
 
 export default function Login() {
   const navigate = useNavigate()
@@ -32,6 +33,11 @@ export default function Login() {
       if (savedRole === 'elder') {
         localStorage.removeItem('elderOnboardingDone')
         navigate('/elder-onboarding', { replace: true })
+        return
+      }
+
+      if (savedRole === 'guardian' && !isGuardianOnboardingComplete()) {
+        navigate('/guardian-onboarding', { replace: true })
         return
       }
 

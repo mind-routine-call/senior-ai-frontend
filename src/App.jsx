@@ -16,6 +16,7 @@ import ElderHome from "./pages/Chat/ElderHome";
 import ElderOnboarding from "./pages/Chat/ElderOnboarding";
 import ElderChat from "./pages/Chat/ElderChat";
 import GuardianChatHistory from "./pages/GuardianChat/GuardianChatHistory";
+import GuardianOnboarding from "./pages/GuardianOnboarding/GuardianOnboarding";
 import MyPage from "./pages/MyPage/MyPage";
 
 export default function App() {
@@ -32,6 +33,7 @@ export default function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route element={<RoleGuard allowedRoles={["guardian"]} />}>
+                  <Route path="/guardian-onboarding" element={<GuardianOnboarding />} />
                   <Route path="/dashboard" element={<Dashboard />} />
                   <Route path="/dashboard/:elderId" element={<Dashboard />} />
                   <Route path="/schedule" element={<ScheduleManager />} />
