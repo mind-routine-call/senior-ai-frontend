@@ -181,7 +181,8 @@ export default function Account({ type = "guardian" }) {
                 <button onClick={() => navigate(-1)}>
                     <img src={back} alt="" className="mb-4" />
                 </button>
-                <h1 className="font-semibold text-[22px]">안녕하세요 {group.gender.title}님
+                <h1 className="font-semibold text-[22px]">
+                    {type === "elder" ? "안녕하세요,어르신" : "안녕하세요 보호자님"}
                     <br />회원가입을 위한 정보를 입력해주세요!
                 </h1>
             </div>
