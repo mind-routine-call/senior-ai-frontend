@@ -234,7 +234,6 @@ export default function ElderHome() {
                   <strong>{home.guardian?.name || '보호자 정보 없음'}</strong>
                 </div>
               </div>
-              <p className="profile-note">{home.elder?.cognitive_note || '등록된 참고 메모가 없습니다.'}</p>
             </section>
           )}
         </div>
