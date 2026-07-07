@@ -1,6 +1,3 @@
-<<<<<<< Updated upstream
-# senior-ai-frontend
-=======
 # Senior AI Frontend
 
 고령자와 보호자를 연결하는 AI 기반 헬스케어 웹 애플리케이션입니다. 어르신은 AI와 음성 대화를 나누고, 보호자는 대시보드를 통해 건강 상태와 대화 이력을 모니터링합니다.
