@@ -157,4 +157,3 @@ npm run preview
 - **발화 분석**: 반복 단어, 추임새(`음`, `어`, `아`), 모호한 표현, 긴 침묵 등을 감지하여 서버에 전달
 
 > 음성 기능은 Chrome 등 Web Speech API를 지원하는 브라우저에서만 동작합니다.
->>>>>>> Stashed changes
