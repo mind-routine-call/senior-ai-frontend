@@ -4,6 +4,9 @@
 
 ---
 
+## 시연영상 
+https://drive.google.com/drive/folders/1Xs68wLUtXa-DV58T9SblRwfmHUOkt5P4
+
 ## 주요 기능
 
 ### 어르신 (Elder)
